@@ -559,114 +559,170 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLB();if(lb.clas
 const ao=new IntersectionObserver(es=>{es.forEach((e,i)=>{if(e.isIntersecting){setTimeout(()=>e.target.classList.add('visible'),i*150);}else{e.target.classList.remove('visible');}});},{threshold:0.3});
 document.querySelectorAll('.award-chip').forEach(c=>ao.observe(c));
 
-// ===== MINIMAL PROFESSIONAL SOUND =====
+// ===== SOUND ENGINE v2 — COLD DEEP VIBRATION =====
 const _AC = new (window.AudioContext || window.webkitAudioContext)();
-function _playTransition(){
-  try{
-    if(_AC.state==='suspended')_AC.resume();
-    const t0=_AC.currentTime;
-    const dur=1.4;
-    // Layer 1: deep sub bass rumble (sine sweep down)
-    const sub=_AC.createOscillator();sub.type='sine';
-    sub.frequency.setValueAtTime(95,t0);
-    sub.frequency.exponentialRampToValueAtTime(38,t0+dur);
-    const subG=_AC.createGain();
-    subG.gain.setValueAtTime(0,t0);
-    subG.gain.linearRampToValueAtTime(0.14,t0+0.12);
-    subG.gain.exponentialRampToValueAtTime(0.0008,t0+dur);
-    sub.connect(subG);subG.connect(_AC.destination);
-    sub.start(t0);sub.stop(t0+dur+0.05);
-    // Layer 2: filtered noise whoosh (underwater current)
-    const noiseDur=1.0;
-    const buf=_AC.createBuffer(1,Math.floor(_AC.sampleRate*noiseDur),_AC.sampleRate);
-    const d=buf.getChannelData(0);
-    let last=0;
-    for(let i=0;i<d.length;i++){const w=Math.random()*2-1;last=(last+0.035*w)/1.035;d[i]=last*2.2;}
-    const ns=_AC.createBufferSource();ns.buffer=buf;
-    const nf=_AC.createBiquadFilter();nf.type='lowpass';
-    nf.frequency.setValueAtTime(2200,t0);
-    nf.frequency.exponentialRampToValueAtTime(180,t0+noiseDur);
-    nf.Q.value=1.2;
-    const nG=_AC.createGain();
-    nG.gain.setValueAtTime(0,t0);
-    nG.gain.linearRampToValueAtTime(0.10,t0+0.08);
-    nG.gain.exponentialRampToValueAtTime(0.0006,t0+noiseDur);
-    ns.connect(nf);nf.connect(nG);nG.connect(_AC.destination);
-    ns.start(t0);ns.stop(t0+noiseDur);
-    // Layer 3: distant sonar ping with reverb-like decay
-    const pingAt=t0+0.18;
-    const ping=_AC.createOscillator();ping.type='sine';
-    ping.frequency.setValueAtTime(880,pingAt);
-    ping.frequency.exponentialRampToValueAtTime(620,pingAt+0.9);
-    const pf=_AC.createBiquadFilter();pf.type='bandpass';pf.frequency.value=780;pf.Q.value=8;
-    const pG=_AC.createGain();
-    pG.gain.setValueAtTime(0,pingAt);
-    pG.gain.linearRampToValueAtTime(0.06,pingAt+0.02);
-    pG.gain.exponentialRampToValueAtTime(0.0005,pingAt+0.95);
-    ping.connect(pf);pf.connect(pG);pG.connect(_AC.destination);
-    ping.start(pingAt);ping.stop(pingAt+1.0);
-  }catch(_){}
-}
-// ===== END SOUND =====
+function _resume(){try{if(_AC.state==='suspended')_AC.resume();}catch(_){}}
 
-// ===== CARD HOVER — DEEP SONAR SOUND + HAPTIC =====
-function _playCardHover(){
+// HOVER: cold sub resonance — like sonar touching metal hull underwater
+function _playHover(){
   try{
-    if(_AC.state==='suspended')_AC.resume();
+    _resume();
     const t0=_AC.currentTime;
-    // Layer 1: deep sub thud
-    const sub=_AC.createOscillator();sub.type='sine';
-    sub.frequency.setValueAtTime(55,t0);
-    sub.frequency.exponentialRampToValueAtTime(28,t0+0.55);
+    // Layer 1: very deep infra rumble — 28Hz growl, triangle wave for dark texture
+    const sub=_AC.createOscillator();sub.type='triangle';
+    sub.frequency.setValueAtTime(32,t0);
+    sub.frequency.linearRampToValueAtTime(22,t0+0.22);
     const subG=_AC.createGain();
     subG.gain.setValueAtTime(0,t0);
-    subG.gain.linearRampToValueAtTime(0.09,t0+0.018);
-    subG.gain.exponentialRampToValueAtTime(0.0001,t0+0.58);
+    subG.gain.linearRampToValueAtTime(0.18,t0+0.016);
+    subG.gain.exponentialRampToValueAtTime(0.0001,t0+0.24);
     sub.connect(subG);subG.connect(_AC.destination);
-    sub.start(t0);sub.stop(t0+0.62);
-    // Layer 2: underwater pressure pulse — bandpass noise
-    const nDur=0.38;
+    sub.start(t0);sub.stop(t0+0.26);
+    // Layer 2: dark mid growl — sawtooth heavily lowpassed, horror rumble
+    const mid=_AC.createOscillator();mid.type='sawtooth';
+    mid.frequency.setValueAtTime(48,t0);
+    mid.frequency.linearRampToValueAtTime(36,t0+0.20);
+    const mf=_AC.createBiquadFilter();mf.type='lowpass';mf.frequency.value=90;mf.Q.value=6;
+    const midG=_AC.createGain();
+    midG.gain.setValueAtTime(0,t0);
+    midG.gain.linearRampToValueAtTime(0.10,t0+0.012);
+    midG.gain.exponentialRampToValueAtTime(0.0001,t0+0.22);
+    mid.connect(mf);mf.connect(midG);midG.connect(_AC.destination);
+    mid.start(t0);mid.stop(t0+0.24);
+    // Layer 3: dark filtered noise — low pressure breath, no high freq at all
+    const nDur=0.20;
     const nb=_AC.createBuffer(1,Math.floor(_AC.sampleRate*nDur),_AC.sampleRate);
     const nd=nb.getChannelData(0);
     let lv=0;
-    for(let i=0;i<nd.length;i++){const w=Math.random()*2-1;lv=(lv+0.05*w)/1.05;nd[i]=lv*2.8;}
+    for(let i=0;i<nd.length;i++){const w=Math.random()*2-1;lv=(lv+0.02*w)/1.02;nd[i]=lv*4;}
     const ns=_AC.createBufferSource();ns.buffer=nb;
-    const nf=_AC.createBiquadFilter();nf.type='bandpass';
-    nf.frequency.setValueAtTime(120,t0);nf.Q.value=0.8;
+    const nf=_AC.createBiquadFilter();nf.type='lowpass';nf.frequency.value=55;nf.Q.value=1.2;
     const nG=_AC.createGain();
     nG.gain.setValueAtTime(0,t0);
-    nG.gain.linearRampToValueAtTime(0.06,t0+0.022);
+    nG.gain.linearRampToValueAtTime(0.14,t0+0.010);
     nG.gain.exponentialRampToValueAtTime(0.0001,t0+nDur);
     ns.connect(nf);nf.connect(nG);nG.connect(_AC.destination);
     ns.start(t0);ns.stop(t0+nDur);
-    // Layer 3: faint ghost sonar ping
-    const pingAt=t0+0.04;
-    const ping=_AC.createOscillator();ping.type='sine';
-    ping.frequency.setValueAtTime(340,pingAt);
-    ping.frequency.exponentialRampToValueAtTime(180,pingAt+0.5);
-    const pf=_AC.createBiquadFilter();pf.type='bandpass';pf.frequency.value=260;pf.Q.value=12;
-    const pG=_AC.createGain();
-    pG.gain.setValueAtTime(0,pingAt);
-    pG.gain.linearRampToValueAtTime(0.028,pingAt+0.012);
-    pG.gain.exponentialRampToValueAtTime(0.0001,pingAt+0.55);
-    ping.connect(pf);pf.connect(pG);pG.connect(_AC.destination);
-    ping.start(pingAt);ping.stop(pingAt+0.6);
   }catch(_){}
 }
-function _hapticCard(){try{if(navigator.vibrate)navigator.vibrate([8,0,4]);}catch(_){}}
-let _lastHover=0;
-document.querySelectorAll('.journey-card').forEach(card=>{
-  card.addEventListener('mouseenter',()=>{
-    const now=Date.now();if(now-_lastHover<120)return;_lastHover=now;
-    _playCardHover();_hapticCard();
-  });
-  card.addEventListener('touchstart',()=>{
-    const now=Date.now();if(now-_lastHover<120)return;_lastHover=now;
-    _playCardHover();_hapticCard();
-  },{passive:true});
-});
-// ===== END CARD HOVER =====
 
+// CLICK: deep pressure drop + long sonar ghost — cold, not percussive
+function _playClick(){
+  try{
+    _resume();
+    const t0=_AC.currentTime;
+    // Very deep sub with slow attack — pressure feel not punch
+    const sub=_AC.createOscillator();sub.type='sine';
+    sub.frequency.setValueAtTime(38,t0);
+    sub.frequency.linearRampToValueAtTime(24,t0+0.30);
+    const subG=_AC.createGain();
+    subG.gain.setValueAtTime(0,t0);
+    subG.gain.linearRampToValueAtTime(0.18,t0+0.018);
+    subG.gain.exponentialRampToValueAtTime(0.0001,t0+0.34);
+    // Vibrato on sub for cold shiver
+    const vib=_AC.createOscillator();vib.type='sine';vib.frequency.value=14;
+    const vibG=_AC.createGain();vibG.gain.value=1.6;
+    vib.connect(vibG);vibG.connect(sub.frequency);
+    vib.start(t0);vib.stop(t0+0.34);
+    sub.connect(subG);subG.connect(_AC.destination);
+    sub.start(t0);sub.stop(t0+0.36);
+    // Sonar echo — pure tone, bandpass filtered, slow decay
+    const ping=_AC.createOscillator();ping.type='sine';
+    ping.frequency.setValueAtTime(480,t0+0.02);
+    ping.frequency.exponentialRampToValueAtTime(220,t0+0.38);
+    const pf=_AC.createBiquadFilter();pf.type='bandpass';pf.frequency.value=350;pf.Q.value=22;
+    const pG=_AC.createGain();
+    pG.gain.setValueAtTime(0,t0+0.02);
+    pG.gain.linearRampToValueAtTime(0.055,t0+0.032);
+    pG.gain.exponentialRampToValueAtTime(0.0001,t0+0.42);
+    ping.connect(pf);pf.connect(pG);pG.connect(_AC.destination);
+    ping.start(t0+0.02);ping.stop(t0+0.44);
+    // Cold filtered noise breath — very quiet, just texture
+    const nDur=0.18;
+    const nb=_AC.createBuffer(1,Math.floor(_AC.sampleRate*nDur),_AC.sampleRate);
+    const nd=nb.getChannelData(0);
+    let lv=0;
+    for(let i=0;i<nd.length;i++){const w=Math.random()*2-1;lv=(lv+0.03*w)/1.03;nd[i]=lv;}
+    const ns=_AC.createBufferSource();ns.buffer=nb;
+    const nf=_AC.createBiquadFilter();nf.type='bandpass';nf.frequency.value=60;nf.Q.value=0.5;
+    const nG=_AC.createGain();
+    nG.gain.setValueAtTime(0.06,t0);
+    nG.gain.exponentialRampToValueAtTime(0.0001,t0+nDur);
+    ns.connect(nf);nf.connect(nG);nG.connect(_AC.destination);
+    ns.start(t0);ns.stop(t0+nDur);
+  }catch(_){}
+}
+
+// TRANSITION: cold deep dive — heavy sub drop + frozen whoosh, 0.5s
+function _playTransition(){
+  try{
+    _resume();
+    const t0=_AC.currentTime;
+    const dur=0.50;
+    // Deep sub dive — very cold, slow ramp
+    const sub=_AC.createOscillator();sub.type='sine';
+    sub.frequency.setValueAtTime(70,t0);
+    sub.frequency.exponentialRampToValueAtTime(20,t0+dur);
+    const subG=_AC.createGain();
+    subG.gain.setValueAtTime(0,t0);
+    subG.gain.linearRampToValueAtTime(0.24,t0+0.04);
+    subG.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+    // Cold vibrato
+    const vib=_AC.createOscillator();vib.type='sine';vib.frequency.value=22;
+    const vibG=_AC.createGain();vibG.gain.value=3.0;
+    vib.connect(vibG);vibG.connect(sub.frequency);
+    vib.start(t0);vib.stop(t0+dur);
+    sub.connect(subG);subG.connect(_AC.destination);
+    sub.start(t0);sub.stop(t0+dur+0.04);
+    // Frozen underwater whoosh — heavy lowpass sweep
+    const noiseDur=0.44;
+    const buf=_AC.createBuffer(1,Math.floor(_AC.sampleRate*noiseDur),_AC.sampleRate);
+    const d=buf.getChannelData(0);
+    let last=0;
+    for(let i=0;i<d.length;i++){const w=Math.random()*2-1;last=(last+0.025*w)/1.025;d[i]=last*3.5;}
+    const ns=_AC.createBufferSource();ns.buffer=buf;
+    const nf=_AC.createBiquadFilter();nf.type='lowpass';
+    nf.frequency.setValueAtTime(900,t0);
+    nf.frequency.exponentialRampToValueAtTime(40,t0+noiseDur);
+    nf.Q.value=0.8;
+    const nG=_AC.createGain();
+    nG.gain.setValueAtTime(0,t0);
+    nG.gain.linearRampToValueAtTime(0.18,t0+0.03);
+    nG.gain.exponentialRampToValueAtTime(0.0001,t0+noiseDur);
+    ns.connect(nf);nf.connect(nG);nG.connect(_AC.destination);
+    ns.start(t0);ns.stop(t0+noiseDur);
+    // Deep cold sonar ping
+    const pingAt=t0+0.05;
+    const ping=_AC.createOscillator();ping.type='sine';
+    ping.frequency.setValueAtTime(520,pingAt);
+    ping.frequency.exponentialRampToValueAtTime(140,pingAt+0.42);
+    const pf=_AC.createBiquadFilter();pf.type='bandpass';pf.frequency.value=300;pf.Q.value=16;
+    const pG=_AC.createGain();
+    pG.gain.setValueAtTime(0,pingAt);
+    pG.gain.linearRampToValueAtTime(0.09,pingAt+0.012);
+    pG.gain.exponentialRampToValueAtTime(0.0001,pingAt+0.46);
+    ping.connect(pf);pf.connect(pG);pG.connect(_AC.destination);
+    ping.start(pingAt);ping.stop(pingAt+0.48);
+  }catch(_){}
+}
+// ===== END SOUND ENGINE =====
+
+
+
+// ===== BROWSER BACK BUTTON FIX =====
+// Replace current history entry so browser back doesn't hang on page-flash overlay
+(function(){
+  try{
+    const url=window.location.href;
+    history.replaceState({hydrone:true},document.title,url);
+    window.addEventListener('pageshow',function(e){
+      // If navigated back via browser (bfcache restore), immediately clear flash
+      const pf=document.getElementById('page-flash');
+      if(pf){pf.style.transition='none';pf.classList.add('cleared');pf.classList.remove('fire');setTimeout(()=>{pf.style.transition='';},50);}
+    });
+  }catch(_){}
+})();
+// ===== END BROWSER BACK FIX =====
 // ===== SMOOTH PAGE TRANSITION =====
 const _flash=document.getElementById('page-flash');
 function _clearFlash(){if(_flash){requestAnimationFrame(()=>_flash.classList.add('cleared'));}}
@@ -674,7 +730,7 @@ if(document.readyState==='complete')_clearFlash();else window.addEventListener('
 function _navigate(href){
   if(_flash){_flash.classList.remove('cleared');_flash.classList.add('fire');}
   _playTransition();
-  setTimeout(()=>{window.location.href=href;},560);
+  setTimeout(()=>{window.location.href=href;},400);
 }
 document.querySelectorAll('[data-flashnav], .back-btn').forEach(el=>{
   el.addEventListener('click',e=>{
@@ -689,6 +745,34 @@ document.querySelectorAll('.explore-btn').forEach(btn=>{
   });
 });
 
+// ===== HOVER + CLICK SOUND BINDINGS =====
+(function(){
+  const selectors = [
+    '.journey-card','.back-btn','.yt-btn','.explore-btn',
+    '.contact-strip a','.gallery-header','.thumb',
+    '.hydrone-mail','#lb-close','#lb-prev','#lb-next','.award-chip'
+  ];
+  let lastHover=0;
+  function bind(){
+    document.querySelectorAll(selectors.join(',')).forEach(el=>{
+      if(el._soundBound) return; el._soundBound=true;
+      el.addEventListener('mouseenter',()=>{
+        const n=Date.now();if(n-lastHover<90)return;lastHover=n;
+        _playHover();
+        try{if(navigator.vibrate)navigator.vibrate([5,0,3]);}catch(_){}
+      });
+      el.addEventListener('touchstart',()=>{
+        const n=Date.now();if(n-lastHover<90)return;lastHover=n;
+        _playHover();
+      },{passive:true});
+      el.addEventListener('click',()=>_playClick());
+    });
+  }
+  bind();
+  // Re-bind after any DOM mutation (for dynamically opened galleries etc)
+  new MutationObserver(bind).observe(document.body,{childList:true,subtree:true});
+})();
+// ===== END BINDINGS =====
 </script>
 </body>
 </html>
