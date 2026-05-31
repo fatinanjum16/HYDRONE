@@ -328,8 +328,8 @@
     .hn-proj-name .hn-proj-small,
     .hn-proj-name span.hn-proj-small {
       font-family: 'Exo 2', sans-serif !important;
-      font-size: 0.9em;
-      font-weight: 700;
+      font-size: 1em;
+      font-weight: 600;
       text-transform: none !important;
       letter-spacing: 2px;
       vertical-align: 0.05em;
