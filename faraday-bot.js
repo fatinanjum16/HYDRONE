@@ -961,7 +961,8 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
     wrap.querySelector('.hc-save-btn').addEventListener('click', async () => {
       const newText = wrap.querySelector('textarea').value.trim();
       if (!newText) return;
-      await fetch(`${FIREBASE_URL}${COMMENTS_PATH}/${c.id}.json`, {
+      const token2 = currentUser ? await currentUser.getIdToken() : null;
+      await fetch(`${FIREBASE_URL}${COMMENTS_PATH}/${c.id}.json${token2 ? '?auth='+token2 : ''}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: newText, edited: true })
@@ -976,7 +977,8 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
 
   async function deleteComment(id) {
     if (!confirm('Delete this comment?')) return;
-    await fetch(`${FIREBASE_URL}${COMMENTS_PATH}/${id}.json`, { method: 'DELETE' });
+    const delToken = currentUser ? await currentUser.getIdToken() : null;
+    await fetch(`${FIREBASE_URL}${COMMENTS_PATH}/${id}.json${delToken ? '?auth='+delToken : ''}`, { method: 'DELETE' });
     allComments = allComments.filter(c => c.id !== id && c.parentId !== id);
     renderComments();
     showToast('Deleted ✓');
@@ -1027,7 +1029,9 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
     };
 
     try {
-      const res  = await fetch(`${FIREBASE_URL}${COMMENTS_PATH}.json`, {
+      const token = currentUser ? await currentUser.getIdToken() : null;
+      const url = token ? `${FIREBASE_URL}${COMMENTS_PATH}.json?auth=${token}` : `${FIREBASE_URL}${COMMENTS_PATH}.json`;
+      const res  = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
