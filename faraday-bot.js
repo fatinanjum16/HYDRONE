@@ -16,7 +16,7 @@
   // CONFIG
   // ═══════════════════════════════════════════════════════════
   const FIREBASE_URL   = 'https://hydrone-by-fatin-default-rtdb.firebaseio.com';
-  const GEMINI_KEY     = 'AQ.Ab8RN6JEvBaU6PeFf35W9WfMvbgL4U3nZBxgS6q6vMlhy7QnwA';
+  const GEMINI_KEY = 'AQ.Ab8RN6JEvBaU6PeFf35W9WfMvbgL4U3nZBxgS6q6vMlhy7QnwA';
   const COMMENTS_PATH  = '/v2comments';
 
   // ── Firebase Web SDK (compat) config ──
@@ -869,7 +869,7 @@ You speak with technical precision and warmth. Answer any question visitors have
       if (!newText) return;
       await fetch(`${FIREBASE_URL}${COMMENTS_PATH}/${c.id}.json`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GEMINI_KEY}` },
         body: JSON.stringify({ text: newText, edited: true })
       });
       c.text = newText; c.edited = true;
@@ -935,7 +935,7 @@ You speak with technical precision and warmth. Answer any question visitors have
     try {
       const res  = await fetch(`${FIREBASE_URL}${COMMENTS_PATH}.json`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GEMINI_KEY}` },
         body: JSON.stringify(payload)
       });
       const data = await res.json();
