@@ -16,7 +16,7 @@
   // CONFIG
   // ═══════════════════════════════════════════════════════════
   const FIREBASE_URL   = 'https://hydrone-by-fatin-default-rtdb.firebaseio.com';
-  const GEMINI_KEY = 'AIzaSyD361IGOeu4sunCpD_O_3QvFzORLoPuQc4';
+  const GROQ_KEY = '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';
   const COMMENTS_PATH  = '/v2comments';
 
   // ── Firebase Web SDK (compat) config ──
@@ -615,25 +615,34 @@ You speak with technical precision and warmth. Answer any question visitors have
     history.push({ role: 'user', parts: [{ text: msg }] });
     showTyping();
     try {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            system_instruction: { parts: [{ text: FARADAY_SYSTEM }] },
-            contents: history
-          })
-        }
-      );
+      // Convert history to Groq/OpenAI format
+      const messages = [
+        { role: 'system', content: FARADAY_SYSTEM },
+        ...history.map(h => ({
+          role: h.role === 'model' ? 'assistant' : 'user',
+          content: h.parts[0].text
+        }))
+      ];
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${GROQ_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages,
+          max_tokens: 1024
+        })
+      });
       const data = await res.json();
       hideTyping();
-      if (data.candidates && data.candidates[0]) {
-        const reply = data.candidates[0].content.parts.map(p => p.text).join('\n');
+      if (data.choices && data.choices[0]) {
+        const reply = data.choices[0].message.content;
         history.push({ role: 'model', parts: [{ text: reply }] });
         addBot(reply);
       } else if (data.error) {
-        addBot(`⚠ API Error: ${data.error.message || 'Unknown error. Check API key.'}`);
+        addBot(`⚠ API Error: ${data.error.message || 'Unknown error.'}`);
       } else {
         addBot('Transmission error. Please try again.');
       }
@@ -869,6 +878,7 @@ You speak with technical precision and warmth. Answer any question visitors have
       if (!newText) return;
       await fetch(`${FIREBASE_URL}${COMMENTS_PATH}/${c.id}.json`, {
         method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GEMINI_KEY}` },
         body: JSON.stringify({ text: newText, edited: true })
       });
       c.text = newText; c.edited = true;
@@ -934,6 +944,7 @@ You speak with technical precision and warmth. Answer any question visitors have
     try {
       const res  = await fetch(`${FIREBASE_URL}${COMMENTS_PATH}.json`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GEMINI_KEY}` },
         body: JSON.stringify(payload)
       });
       const data = await res.json();
