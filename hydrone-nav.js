@@ -326,9 +326,12 @@
     }
     /* Mixed-case letters inside project names */
     .hn-proj-small {
-      font-size: 1em;
+      font-family: 'Exo 2', sans-serif;
+      font-size: 0.9em;
+      font-weight: 700;
       text-transform: none;
-      vertical-align: baseline;
+      letter-spacing: 2px;
+      vertical-align: 0.05em;
     }
     .hn-proj-item:hover .hn-proj-name {
       color: #00ffd5;
