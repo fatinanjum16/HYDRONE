@@ -21,14 +21,14 @@
       index: 1,                 // 2nd gen-block
     },
     {
-      label: 'HYDRo<span class="hn-proj-small">N</span>E',
+      label: 'HYDR<span class="hn-proj-small">o</span>NE',
       labelPlain: 'HYDRoNE',
       page:  'core.html',
       selector: '.gen-block',
       index: 2,                 // 3rd gen-block
     },
     {
-      label: 'HYDRONE <span class="hn-proj-small">v</span>I<span class="hn-proj-small">V</span>o',
+      label: 'HYDRONE <span class="hn-proj-small">v</span>I<span class="hn-proj-small">V</span><span class="hn-proj-small">o</span>',
       labelPlain: 'HYDRONE vIVo',
       page:  'core.html',
       selector: '.gen-block',
