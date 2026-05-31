@@ -37,6 +37,11 @@
   //   4. Replace the FIREBASE_URL below
   // ═══════════════════════════════════════════════════════════
   const FIREBASE_URL = 'https://hydrone-1618-default-rtdb.firebaseio.com';
+
+  // ═══════════════════════════════════════════════════════════
+  // GEMINI API KEY — paste your key below between the quotes
+  // ═══════════════════════════════════════════════════════════
+  const GEMINI_KEY = 'AQ.Ab8RN6L87dktugcnRQmZgNodRRw60r8cZmZxSIifbpF9tfhrVg';
   // ↑ Replace with your actual Firebase Realtime Database URL
 
   // ═══════════════════════════════════════════════════════════
@@ -455,19 +460,25 @@ You speak with technical precision and warmth. Answer any question visitors have
   function hideTyping() { const el = document.getElementById('frd-typing'); if (el) el.remove(); }
 
   async function askFaraday(msg) {
-    history.push({ role: 'user', content: msg });
+    history.push({ role: 'user', parts: [{ text: msg }] });
     showTyping();
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, system: FARADAY_SYSTEM, messages: history })
-      });
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: FARADAY_SYSTEM }] },
+            contents: history
+          })
+        }
+      );
       const data = await res.json();
       hideTyping();
-      if (data.content && data.content[0]) {
-        const reply = data.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
-        history.push({ role: 'assistant', content: reply });
+      if (data.candidates && data.candidates[0]) {
+        const reply = data.candidates[0].content.parts.map(p => p.text).join('\n');
+        history.push({ role: 'model', parts: [{ text: reply }] });
         addBot(reply);
       } else { addBot('Transmission error. Please try again.'); }
     } catch { hideTyping(); addBot('Connection lost. Check your network and try again.'); }
