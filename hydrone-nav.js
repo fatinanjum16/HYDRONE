@@ -325,11 +325,12 @@
       transition: color 0.14s, text-shadow 0.14s;
     }
     /* Mixed-case letters inside project names */
-    .hn-proj-small {
-      font-family: 'Exo 2', sans-serif;
+    .hn-proj-name .hn-proj-small,
+    .hn-proj-name span.hn-proj-small {
+      font-family: 'Exo 2', sans-serif !important;
       font-size: 0.9em;
       font-weight: 700;
-      text-transform: none;
+      text-transform: none !important;
       letter-spacing: 2px;
       vertical-align: 0.05em;
     }
