@@ -935,7 +935,7 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
       if (!newText) return;
       await fetch(`${FIREBASE_URL}${COMMENTS_PATH}/${c.id}.json`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GEMINI_KEY}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: newText, edited: true })
       });
       c.text = newText; c.edited = true;
@@ -1001,7 +1001,7 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
     try {
       const res  = await fetch(`${FIREBASE_URL}${COMMENTS_PATH}.json`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GEMINI_KEY}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
       const data = await res.json();
