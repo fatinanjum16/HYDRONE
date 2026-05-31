@@ -421,6 +421,16 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
 #hc-submit-btn:hover { background: rgba(0,255,231,0.18); box-shadow: 0 0 16px rgba(0,255,231,0.25); }
 #hc-submit-btn:disabled { opacity: 0.4; pointer-events: none; }
 
+.hc-inline-reply-btn {
+  background: transparent; border: none;
+  font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 1px;
+  color: rgba(0,255,231,0.4); cursor: pointer; padding: 4px 0; margin-top: 4px;
+  transition: color 0.2s;
+}
+.hc-inline-reply-btn:hover { color: #00ffe7; }
+.hc-replies-wrap { border-left: 1px solid rgba(0,255,231,0.08); padding-left: 10px; margin-top: 4px; }
+.hc-thread { margin-bottom: 12px; }
+
 /* Comments list */
 #hc-list-section {
   flex: 1; overflow-y: auto; padding: 16px 22px;
@@ -840,28 +850,43 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
       return;
     }
 
-    // Sort: top-level by time desc, replies grouped under parent
+    // Build nested tree
     const topLevel = allComments.filter(c => !c.parentId).sort((a,b) => b.ts - a.ts);
-    const replies   = allComments.filter(c => c.parentId);
 
     list.innerHTML = '';
     let total = 0;
 
     topLevel.forEach(c => {
-      list.appendChild(buildCommentEl(c, false));
+      const thread = document.createElement('div');
+      thread.className = 'hc-thread';
+      thread.appendChild(buildCommentEl(c, 0));
       total++;
-      replies.filter(r => r.parentId === c.id).sort((a,b) => a.ts - b.ts).forEach(r => {
-        list.appendChild(buildCommentEl(r, true));
-        total++;
-      });
+
+      // Recursively build replies
+      function appendReplies(parentId, container, depth) {
+        const children = allComments.filter(r => r.parentId === parentId).sort((a,b) => a.ts - b.ts);
+        if (children.length === 0) return;
+        const repliesWrap = document.createElement('div');
+        repliesWrap.className = 'hc-replies-wrap';
+        repliesWrap.style.marginLeft = Math.min(depth * 20, 40) + 'px';
+        children.forEach(r => {
+          repliesWrap.appendChild(buildCommentEl(r, depth));
+          total++;
+          appendReplies(r.id, repliesWrap, depth + 1);
+        });
+        container.appendChild(repliesWrap);
+      }
+
+      appendReplies(c.id, thread, 1);
+      list.appendChild(thread);
     });
 
     updateBadge(total);
   }
 
-  function buildCommentEl(c, isReply) {
+  function buildCommentEl(c, depth) {
     const el = document.createElement('div');
-    el.className = 'hc-comment' + (isReply ? ' is-reply' : '');
+    el.className = 'hc-comment' + (depth > 0 ? ' is-reply' : '');
     el.dataset.id = c.id;
 
     const avatar = c.photoURL
@@ -871,12 +896,6 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
     const canEditThis   = canEdit(c);
     const canDeleteThis = canDelete(c);
 
-    const actionBtns = `
-      ${currentUser && !isReply ? `<button class="hc-action-btn hc-reply-btn" data-id="${c.id}" data-name="${esc(c.name)}">↩ Reply</button>` : ''}
-      ${canEditThis   ? `<button class="hc-action-btn hc-edit-btn"  data-id="${c.id}">Edit</button>` : ''}
-      ${canDeleteThis ? `<button class="hc-action-btn hc-del-btn"   data-id="${c.id}">Del</button>` : ''}
-    `;
-
     el.innerHTML = `
       <div class="hc-comment-top">
         ${avatar}
@@ -884,18 +903,27 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
           <div class="hc-author">${esc(c.name)}</div>
           <div class="hc-time">${formatDate(c.ts)}${c.edited ? ' · edited' : ''}</div>
         </div>
-        <div class="hc-actions">${actionBtns}</div>
+        <div class="hc-actions">
+          ${canEditThis   ? `<button class="hc-action-btn hc-edit-btn" data-id="${c.id}">Edit</button>` : ''}
+          ${canDeleteThis ? `<button class="hc-action-btn hc-del-btn"  data-id="${c.id}">Del</button>` : ''}
+        </div>
       </div>
       <div class="hc-text" id="hc-text-${c.id}">${esc(c.text).replace(/\n/g,'<br>')}</div>
+      ${currentUser ? `<button class="hc-inline-reply-btn" data-id="${c.id}" data-name="${esc(c.name)}">↩ Reply</button>` : ''}
     `;
 
-    // Reply
-    el.querySelectorAll('.hc-reply-btn').forEach(btn => {
+    // Inline reply button
+    el.querySelectorAll('.hc-inline-reply-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         replyingTo = { id: btn.dataset.id, authorName: btn.dataset.name };
         const rt = document.getElementById('hc-replying-to');
-        if (rt) { rt.innerHTML = `↩ Replying to <strong style="color:#ff9c38">${esc(replyingTo.authorName)}</strong> <button id="hc-cancel-reply">✕</button>`; rt.style.display = 'flex'; document.getElementById('hc-cancel-reply').addEventListener('click', cancelReply); }
+        if (rt) {
+          rt.innerHTML = `↩ Replying to <strong style="color:#ff9c38">${esc(replyingTo.authorName)}</strong> <button id="hc-cancel-reply">✕</button>`;
+          rt.style.display = 'flex';
+          document.getElementById('hc-cancel-reply').addEventListener('click', cancelReply);
+        }
         document.getElementById('hc-comment-input').focus();
+        document.getElementById('hc-comment-input').scrollIntoView({ behavior: 'smooth', block: 'center' });
       });
     });
 
@@ -995,7 +1023,7 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
       text,
       ts:       Date.now(),
       edited:   false,
-      parentId: replyingTo ? replyingTo.id : null
+      ...(replyingTo ? { parentId: replyingTo.id } : {})
     };
 
     try {
