@@ -21,13 +21,13 @@
 
   // ── Firebase Web SDK (compat) config ──
   const FB_CONFIG = {
-    apiKey:            "AIzaSyAQAb8RN6JTezauEofiOVaEDaOaVdvlqA0xJh0tYPw0j_0yFr7cwg",
+    apiKey:            "AIzaSyAV7Dprp-JI7v00tBdEIV2SfLBzpVjUuBg",
     authDomain:        "hydrone-by-fatin.firebaseapp.com",
     databaseURL:       "https://hydrone-by-fatin-default-rtdb.firebaseio.com",
     projectId:         "hydrone-by-fatin",
     storageBucket:     "hydrone-by-fatin.appspot.com",
     messagingSenderId: "261476380539",
-    appId:             "1:261476380539:web:hydronebyfatin"
+    appId:             "1:261476380539:web:fb584ff5ca653015a5d7de"
   };
 
   // Owner UID — Fatin's Google UID (set after first login, see console)
