@@ -28,7 +28,7 @@
       index: 2,                 // 3rd gen-block
     },
     {
-      label: 'HYDRONE <span class="hn-proj-small">v</span>I<span class="hn-proj-small">V</span><span class="hn-proj-small">o</span>',
+      label: 'HYDRONE <span class="hn-proj-small">v</span>IV<span class="hn-proj-small">o</span>',
       labelPlain: 'HYDRONE vIVo',
       page:  'core.html',
       selector: '.gen-block',
@@ -326,9 +326,9 @@
     }
     /* Mixed-case letters inside project names */
     .hn-proj-small {
-      font-size: 0.78em;
+      font-size: 1em;
       text-transform: none;
-      vertical-align: 0.04em;
+      vertical-align: baseline;
     }
     .hn-proj-item:hover .hn-proj-name {
       color: #00ffd5;
