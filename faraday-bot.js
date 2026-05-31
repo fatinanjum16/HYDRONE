@@ -1006,13 +1006,20 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
       });
       const data = await res.json();
       allComments.push({ id: data.name, ...payload });
+      const wasReply = replyingTo;
       inp.value = '';
       cancelReply();
       renderComments();
       showToast('Transmitted ✓');
-      // Scroll list to top to see new comment
       const listSec = document.getElementById('hc-list-section');
-      if (listSec) listSec.scrollTop = 0;
+      if (listSec) {
+        if (wasReply) {
+          const parentEl = listSec.querySelector('[data-id="' + wasReply.id + '"]');
+          if (parentEl) parentEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          listSec.scrollTop = 0;
+        }
+      }
     } catch { showToast('Failed to send. Try again.', true); }
 
     btn.disabled = false;
