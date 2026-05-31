@@ -36,7 +36,7 @@
   //   3. Copy your database URL (looks like: https://YOUR-APP.firebaseio.com)
   //   4. Replace the FIREBASE_URL below
   // ═══════════════════════════════════════════════════════════
-  const FIREBASE_URL = 'https://hydrone-comments-default-rtdb.firebaseio.com';
+  const FIREBASE_URL = 'https://hydrone-1618-default-rtdb.firebaseio.com';
   // ↑ Replace with your actual Firebase Realtime Database URL
 
   // ═══════════════════════════════════════════════════════════
@@ -77,116 +77,133 @@ You speak with technical precision and warmth. Answer any question visitors have
 /* ── FARADAY TRIGGER ── */
 #faraday-trigger {
   position: fixed; bottom: 32px; left: 32px; z-index: 19000;
-  width: 58px; height: 58px;
-  background: rgba(0,8,22,0.95);
-  border: 1px solid rgba(0,255,231,0.5);
-  clip-path: polygon(14px 0%, 100% 0%, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0% 100%, 0% 14px);
+  width: 62px; height: 62px;
+  background: radial-gradient(ellipse at 30% 30%, rgba(0,40,60,0.98), rgba(0,8,22,0.99));
+  border: none; border-radius: 50%;
   cursor: pointer; display: flex; align-items: center; justify-content: center;
-  transition: all 0.3s;
-  box-shadow: 0 0 20px rgba(0,255,231,0.25), inset 0 0 20px rgba(0,255,231,0.04);
+  transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 0 0 1px rgba(0,255,231,0.3), 0 0 28px rgba(0,255,231,0.2), 0 8px 32px rgba(0,0,0,0.6);
 }
+#faraday-trigger::before {
+  content:''; position:absolute; inset:-3px; border-radius:50%;
+  background: conic-gradient(from 0deg, rgba(0,255,231,0.6), rgba(0,255,231,0.05), rgba(0,255,231,0.6));
+  animation: frdRotate 4s linear infinite; z-index:-1;
+}
+#faraday-trigger::after {
+  content:''; position:absolute; inset:0px; border-radius:50%;
+  background: radial-gradient(ellipse at 30% 30%, rgba(0,40,60,0.98), rgba(0,8,22,0.99)); z-index:-1;
+}
+@keyframes frdRotate { to { transform: rotate(360deg); } }
 #faraday-trigger:hover {
-  border-color: rgba(0,255,231,0.9);
-  box-shadow: 0 0 35px rgba(0,255,231,0.55), inset 0 0 20px rgba(0,255,231,0.08);
-  transform: scale(1.06);
+  transform: scale(1.12);
+  box-shadow: 0 0 0 1px rgba(0,255,231,0.6), 0 0 40px rgba(0,255,231,0.4), 0 12px 40px rgba(0,0,0,0.7);
 }
-#faraday-trigger svg { width: 24px; height: 24px; fill: #00ffe7; filter: drop-shadow(0 0 6px rgba(0,255,231,0.8)); }
+#faraday-trigger svg { width: 26px; height: 26px; fill: #00ffe7; filter: drop-shadow(0 0 8px rgba(0,255,231,0.9)); position:relative; z-index:1; }
 .frd-ping {
-  position: absolute; top: 6px; right: 6px;
-  width: 9px; height: 9px; background: #00ffe7; border-radius: 50%;
-  animation: frdPing 2s ease-in-out infinite; box-shadow: 0 0 6px #00ffe7;
+  position: absolute; top: 4px; right: 4px;
+  width: 10px; height: 10px; background: #00ff88; border-radius: 50%;
+  animation: frdPing 2s ease-in-out infinite; box-shadow: 0 0 8px #00ff88; z-index:2;
 }
-@keyframes frdPing { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.35;transform:scale(1.5)} }
+@keyframes frdPing { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(1.6)} }
 
 /* ── FARADAY PANEL ── */
 #faraday-panel {
-  position: fixed; bottom: 104px; left: 32px; width: 380px;
+  position: fixed; bottom: 112px; left: 22px; width: 370px;
   z-index: 19001;
-  background: rgba(4,14,30,0.97);
-  border: 1px solid rgba(0,255,231,0.22);
-  clip-path: polygon(20px 0%, 100% 0%, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0% 100%, 0% 20px);
+  background: linear-gradient(160deg, rgba(5,16,34,0.98) 0%, rgba(2,10,24,0.99) 100%);
+  border-radius: 20px 20px 20px 6px;
+  border: 1px solid rgba(0,255,231,0.15);
   display: flex; flex-direction: column;
-  transform: translateY(20px) scale(0.96); opacity: 0; pointer-events: none;
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  box-shadow: 0 0 60px rgba(0,255,231,0.1), 0 30px 80px rgba(0,0,0,0.8);
+  transform: translateY(16px) scale(0.94); opacity: 0; pointer-events: none;
+  transition: opacity 0.35s cubic-bezier(0.34,1.2,0.64,1), transform 0.35s cubic-bezier(0.34,1.2,0.64,1);
+  box-shadow: 0 0 0 1px rgba(0,255,231,0.06), 0 24px 64px rgba(0,0,0,0.85), inset 0 1px 0 rgba(0,255,231,0.12);
+  overflow: hidden;
 }
 #faraday-panel.open { transform: translateY(0) scale(1); opacity: 1; pointer-events: all; }
 #faraday-panel::before {
-  content: ''; position: absolute; top: 0; left: 20px; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(0,255,231,0.7), rgba(0,255,231,0.3));
-  box-shadow: 0 0 8px rgba(0,255,231,0.4);
-}
-#faraday-panel::after {
-  content: ''; position: absolute; inset: 0; pointer-events: none;
-  background: repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(0,255,231,0.012) 40px,rgba(0,255,231,0.012) 41px),
-              repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(0,255,231,0.008) 40px,rgba(0,255,231,0.008) 41px);
-  clip-path: inherit;
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 80px; pointer-events:none;
+  background: radial-gradient(ellipse at 50% 0%, rgba(0,255,231,0.07) 0%, transparent 70%);
 }
 
 /* header */
-#frd-header { padding: 14px 18px 12px; border-bottom: 1px solid rgba(0,255,231,0.1); display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
-#frd-status-cluster { display: flex; flex-direction: column; gap: 4px; }
-.frd-status-light { display: flex; align-items: center; gap: 6px; font-family: 'Space Mono',monospace; font-size: 8px; letter-spacing: 1.5px; color: rgba(0,255,231,0.5); text-transform: uppercase; }
-.frd-status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 5px currentColor; }
+#frd-header {
+  padding: 16px 18px 14px;
+  border-bottom: 1px solid rgba(0,255,231,0.07);
+  display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+  background: linear-gradient(180deg, rgba(0,255,231,0.04) 0%, transparent 100%);
+}
+#frd-status-cluster { display: flex; flex-direction: column; gap: 3px; }
+.frd-status-light { display: flex; align-items: center; gap: 5px; font-family: 'Space Mono',monospace; font-size: 7.5px; letter-spacing: 1.5px; color: rgba(0,255,231,0.4); text-transform: uppercase; }
+.frd-status-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 4px currentColor; }
 .frd-status-dot.green { background:#00ff88;color:#00ff88;animation:sDot 2s ease-in-out infinite; }
 .frd-status-dot.amber { background:#ffb800;color:#ffb800;animation:sDot 2.5s ease-in-out 0.3s infinite; }
 .frd-status-dot.teal  { background:#00ffe7;color:#00ffe7;animation:sDot 3s ease-in-out 0.6s infinite; }
-@keyframes sDot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+@keyframes sDot { 0%,100%{opacity:1} 50%{opacity:0.25} }
 #frd-title-block { flex: 1; }
-#frd-name { font-family:'Orbitron',sans-serif; font-size:14px; font-weight:700; letter-spacing:3px; color:#00ffe7; text-shadow:0 0 8px rgba(0,255,231,0.8); line-height:1; }
-#frd-subtitle { font-family:'Space Mono',monospace; font-size:8.5px; letter-spacing:2px; color:rgba(0,255,231,0.4); margin-top:3px; text-transform:uppercase; }
+#frd-name { font-family:'Orbitron',sans-serif; font-size:15px; font-weight:700; letter-spacing:4px; color:#00ffe7; text-shadow:0 0 12px rgba(0,255,231,0.6); line-height:1; }
+#frd-subtitle { font-family:'Space Mono',monospace; font-size:8px; letter-spacing:1.5px; color:rgba(0,255,231,0.35); margin-top:4px; text-transform:uppercase; }
 #frd-close {
-  width:28px;height:28px;background:rgba(0,255,231,0.05);border:1px solid rgba(0,255,231,0.2);
-  clip-path:polygon(6px 0%,100% 0%,100% calc(100% - 6px),calc(100% - 6px) 100%,0% 100%,0% 6px);
-  color:#00ffe7;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;
+  width:30px;height:30px;background:rgba(0,255,231,0.04);
+  border:1px solid rgba(0,255,231,0.15); border-radius:50%;
+  color:rgba(0,255,231,0.6);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.25s;flex-shrink:0;
 }
-#frd-close:hover { background:rgba(0,255,231,0.15); box-shadow:0 0 10px rgba(0,255,231,0.3); }
+#frd-close:hover { background:rgba(0,255,231,0.12); color:#00ffe7; border-color:rgba(0,255,231,0.4); transform:rotate(90deg); box-shadow:0 0 12px rgba(0,255,231,0.2); }
 
 /* messages */
 #frd-messages {
-  flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:12px;
-  min-height:0;max-height:360px;
-  scrollbar-width:thin;scrollbar-color:rgba(0,255,231,0.2) transparent;
+  flex:1;overflow-y:auto;padding:18px 16px;display:flex;flex-direction:column;gap:10px;
+  min-height:0;max-height:340px;
+  scrollbar-width:thin;scrollbar-color:rgba(0,255,231,0.15) transparent;
 }
-#frd-messages::-webkit-scrollbar{width:3px}
-#frd-messages::-webkit-scrollbar-thumb{background:rgba(0,255,231,0.2);border-radius:2px}
-.frd-msg { display:flex;flex-direction:column;max-width:90%;animation:frdIn 0.3s ease-out; }
-@keyframes frdIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+#frd-messages::-webkit-scrollbar{width:2px}
+#frd-messages::-webkit-scrollbar-thumb{background:rgba(0,255,231,0.15);border-radius:2px}
+.frd-msg { display:flex;flex-direction:column;max-width:85%;animation:frdIn 0.35s cubic-bezier(0.34,1.2,0.64,1); }
+@keyframes frdIn { from{opacity:0;transform:translateY(12px) scale(0.96)} to{opacity:1;transform:translateY(0) scale(1)} }
 .frd-msg.user { align-self:flex-end;align-items:flex-end; }
 .frd-msg.bot  { align-self:flex-start;align-items:flex-start; }
-.frd-bubble { padding:10px 14px;font-family:'Exo 2',sans-serif;font-size:13px;line-height:1.6;color:#c8e6f5; }
+.frd-bubble { padding:11px 15px;font-family:'Exo 2',sans-serif;font-size:13px;line-height:1.65;color:#c8e6f5; }
 .frd-msg.user .frd-bubble {
-  background:rgba(0,255,231,0.08);border:1px solid rgba(0,255,231,0.28);
-  clip-path:polygon(8px 0%,100% 0%,100% 100%,0% 100%,0% 8px);color:#e0f8ff;
+  background: linear-gradient(135deg, rgba(0,255,231,0.1), rgba(0,180,160,0.06));
+  border:1px solid rgba(0,255,231,0.22);
+  border-radius: 16px 16px 4px 16px;
+  color:#e0f8ff;
 }
 .frd-msg.bot .frd-bubble {
-  background:rgba(255,156,56,0.05);border:1px solid rgba(255,156,56,0.18);
-  clip-path:polygon(0% 0%,calc(100% - 8px) 0%,100% 8px,100% 100%,0% 100%);
-  border-left:2px solid rgba(255,156,56,0.5);
+  background: linear-gradient(135deg, rgba(255,156,56,0.07), rgba(200,100,20,0.04));
+  border:1px solid rgba(255,156,56,0.15);
+  border-left: 2px solid rgba(255,156,56,0.45);
+  border-radius: 4px 16px 16px 16px;
 }
-.frd-bubble strong{color:#00ffe7} .frd-bubble em{color:#ffc96b;font-style:normal}
-.frd-typing .frd-bubble{padding:12px 18px}
+.frd-bubble strong{color:#00ffe7; font-weight:600;} .frd-bubble em{color:#ffc96b;font-style:normal}
+.frd-typing .frd-bubble{padding:13px 18px}
 .frd-dots{display:flex;gap:5px;align-items:center}
-.frd-dots span{width:5px;height:5px;background:rgba(255,156,56,0.6);border-radius:50%;animation:frdDot 1.2s ease-in-out infinite}
+.frd-dots span{width:6px;height:6px;background:rgba(255,156,56,0.5);border-radius:50%;animation:frdDot 1.4s ease-in-out infinite}
 .frd-dots span:nth-child(2){animation-delay:0.2s} .frd-dots span:nth-child(3){animation-delay:0.4s}
-@keyframes frdDot{0%,80%,100%{transform:scale(0.7);opacity:0.4}40%{transform:scale(1.2);opacity:1}}
+@keyframes frdDot{0%,80%,100%{transform:scale(0.6) translateY(0);opacity:0.3}40%{transform:scale(1.1) translateY(-3px);opacity:1}}
 
 /* input */
-#frd-input-row{padding:12px 18px 14px;border-top:1px solid rgba(0,255,231,0.08);display:flex;gap:10px;align-items:center;flex-shrink:0}
+#frd-input-row{
+  padding:12px 14px 14px;
+  border-top:1px solid rgba(0,255,231,0.07);
+  display:flex;gap:8px;align-items:center;flex-shrink:0;
+  background: linear-gradient(0deg, rgba(0,255,231,0.02) 0%, transparent 100%);
+}
 #frd-input {
-  flex:1;background:rgba(0,255,231,0.04);border:1px solid rgba(0,255,231,0.18);
-  clip-path:polygon(6px 0%,100% 0%,100% calc(100% - 6px),calc(100% - 6px) 100%,0% 100%,0% 6px);
-  color:#c8e6f5;font-family:'Exo 2',sans-serif;font-size:13px;padding:9px 14px;outline:none;
-  transition:border-color 0.2s,box-shadow 0.2s;
+  flex:1;background:rgba(0,255,231,0.04);
+  border:1px solid rgba(0,255,231,0.14); border-radius: 24px;
+  color:#c8e6f5;font-family:'Exo 2',sans-serif;font-size:13px;padding:10px 18px;outline:none;
+  transition:border-color 0.25s,box-shadow 0.25s,background 0.25s;
 }
-#frd-input::placeholder{color:rgba(120,180,200,0.4);font-size:12px}
-#frd-input:focus{border-color:rgba(0,255,231,0.45);box-shadow:0 0 14px rgba(0,255,231,0.1)}
+#frd-input::placeholder{color:rgba(120,180,200,0.35);font-size:12px}
+#frd-input:focus{border-color:rgba(0,255,231,0.38);background:rgba(0,255,231,0.06);box-shadow:0 0 0 3px rgba(0,255,231,0.06),0 0 18px rgba(0,255,231,0.08);}
 #frd-send {
-  width:40px;height:40px;background:rgba(0,255,231,0.1);border:1px solid rgba(0,255,231,0.4);
-  clip-path:polygon(8px 0%,100% 0%,100% calc(100% - 8px),calc(100% - 8px) 100%,0% 100%,0% 8px);
-  color:#00ffe7;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;
+  width:40px;height:40px;
+  background: linear-gradient(135deg, rgba(0,255,231,0.15), rgba(0,180,160,0.08));
+  border:1px solid rgba(0,255,231,0.35); border-radius: 50%;
+  color:#00ffe7;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all 0.25s cubic-bezier(0.34,1.4,0.64,1);flex-shrink:0;
 }
-#frd-send:hover{background:rgba(0,255,231,0.22);box-shadow:0 0 16px rgba(0,255,231,0.35)}
+#frd-send:hover{background:linear-gradient(135deg,rgba(0,255,231,0.28),rgba(0,200,180,0.15));transform:scale(1.1) rotate(-5deg);box-shadow:0 0 20px rgba(0,255,231,0.4);border-color:rgba(0,255,231,0.7);}
 #frd-send svg{width:16px;height:16px;fill:currentColor}
 
 /* ── DRIVE MODAL ── */
@@ -351,7 +368,7 @@ You speak with technical precision and warmth. Answer any question visitors have
 .hc-toast.show{opacity:1;transform:translateY(0)}
 
 @media(max-width:600px){
-  #faraday-panel{width:calc(100vw - 20px);left:10px;bottom:92px}
+  #faraday-panel{width:calc(100vw - 20px);left:10px;bottom:100px;max-height:calc(100vh - 130px);border-radius:16px 16px 16px 6px}
   #faraday-trigger{bottom:22px;left:22px}
   #hydrone-comments{padding:0 18px 60px}
   .hc-row{grid-template-columns:1fr}
