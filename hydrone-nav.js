@@ -21,7 +21,7 @@
       index: 1,                 // 2nd gen-block
     },
     {
-      label: 'HYDR<span style="text-transform:none!important;font-family:Arial,sans-serif;font-size:1em;font-weight:400;">o</span>NE',
+      label: 'HYDR<span style="font-size:0.72em;vertical-align:0.08em;font-family:Orbitron,sans-serif;">O</span>NE',
       labelPlain: 'HYDRoNE',
       page:  'core.html',
       selector: '.gen-block',
