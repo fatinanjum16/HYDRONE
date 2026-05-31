@@ -21,14 +21,14 @@
       index: 1,                 // 2nd gen-block
     },
     {
-      label: 'HYDR<span style="font-size:0.72em;vertical-align:0.08em;font-family:Orbitron,sans-serif;">O</span>NE',
+      label: 'HYDRoNE',
       labelPlain: 'HYDRoNE',
       page:  'core.html',
       selector: '.gen-block',
       index: 2,                 // 3rd gen-block
     },
     {
-      label: 'HYDRONE <span style="text-transform:none!important;font-family:Arial,sans-serif;font-size:1em;font-weight:400;">v</span>IV<span style="text-transform:none!important;font-family:Arial,sans-serif;font-size:1em;font-weight:400;">o</span>',
+      label: 'HYDRONE vIVo',
       labelPlain: 'HYDRONE vIVo',
       page:  'core.html',
       selector: '.gen-block',
@@ -321,7 +321,6 @@
       font-size: 8.8px;
       letter-spacing: 2px;
       color: rgba(0,215,195,0.65);
-      text-transform: uppercase;
       transition: color 0.14s, text-shadow 0.14s;
     }
     /* Mixed-case letters inside project names */
