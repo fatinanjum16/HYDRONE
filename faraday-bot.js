@@ -160,6 +160,7 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
 /* ── FARADAY PANEL ── */
 #faraday-panel {
   position: fixed; bottom: 112px; left: 22px; width: 370px;
+  max-height: calc(100vh - 140px);
   z-index: 19001;
   background: linear-gradient(160deg, rgba(5,16,34,0.98) 0%, rgba(2,10,24,0.99) 100%);
   border-radius: 20px 20px 20px 6px;
@@ -199,7 +200,7 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
 #frd-close:hover { background:rgba(0,255,231,0.12); color:#00ffe7; border-color:rgba(0,255,231,0.4); transform:rotate(90deg); box-shadow:0 0 12px rgba(0,255,231,0.2); }
 #frd-messages {
   flex:1;overflow-y:auto;padding:18px 16px;display:flex;flex-direction:column;gap:10px;
-  min-height:0;max-height:340px;
+  min-height:0;max-height:calc(100vh - 320px);
   scrollbar-width:thin;scrollbar-color:rgba(0,255,231,0.15) transparent;
 }
 #frd-messages::-webkit-scrollbar{width:2px}
@@ -430,6 +431,16 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
 .hc-inline-reply-btn:hover { color: #00ffe7; }
 .hc-replies-wrap { border-left: 1px solid rgba(0,255,231,0.08); padding-left: 10px; margin-top: 4px; }
 .hc-thread { margin-bottom: 12px; }
+.hc-like-btn {
+  background: transparent; border: none;
+  font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 1px;
+  color: rgba(0,255,231,0.4); cursor: pointer; padding: 4px 6px; margin-top: 4px;
+  transition: all 0.2s; display: inline-flex; align-items: center; gap: 5px;
+  border-radius: 20px;
+}
+.hc-like-btn:hover { color: #00ffe7; background: rgba(0,255,231,0.06); }
+.hc-like-btn.liked { color: #00ffe7; background: rgba(0,255,231,0.1); }
+.hc-like-btn .hc-like-count { font-size: 10px; }
 
 /* Comments list */
 #hc-list-section {
@@ -455,6 +466,12 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
   border-radius: 50%; animation: hcSpin 0.8s linear infinite; flex-shrink: 0;
 }
 @keyframes hcSpin { to { transform: rotate(360deg); } }
+
+/* ── CURSOR FIX ── */
+#cursor-dot { z-index: 99999 !important; pointer-events: none !important; }
+
+/* ── DIVE IN FIX ── */
+#hc-trigger-btn { z-index: 19000 !important; }
 
 /* Single comment */
 .hc-comment {
@@ -896,6 +913,10 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
     const canEditThis   = canEdit(c);
     const canDeleteThis = canDelete(c);
 
+    const likes = c.likes || {};
+    const likeCount = Object.keys(likes).length;
+    const likedByMe = currentUser && likes[currentUser.uid] === true;
+
     el.innerHTML = `
       <div class="hc-comment-top">
         ${avatar}
@@ -909,7 +930,12 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
         </div>
       </div>
       <div class="hc-text" id="hc-text-${c.id}">${esc(c.text).replace(/\n/g,'<br>')}</div>
-      ${currentUser ? `<button class="hc-inline-reply-btn" data-id="${c.id}" data-name="${esc(c.name)}">↩ Reply</button>` : ''}
+      <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+        <button class="hc-like-btn${likedByMe ? ' liked' : ''}" data-id="${c.id}">
+          👍 <span class="hc-like-count">${likeCount > 0 ? likeCount : ''}</span>
+        </button>
+        ${currentUser ? `<button class="hc-inline-reply-btn" data-id="${c.id}" data-name="${esc(c.name)}">↩ Reply</button>` : ''}
+      </div>
     `;
 
     // Inline reply button
@@ -924,6 +950,31 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
         }
         document.getElementById('hc-comment-input').focus();
         document.getElementById('hc-comment-input').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    });
+
+    // Like
+    el.querySelectorAll('.hc-like-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!currentUser) { showToast('Sign in to like', true); return; }
+        const cid = btn.dataset.id;
+        const comment = allComments.find(x => x.id === cid);
+        if (!comment) return;
+        const token = await currentUser.getIdToken();
+        const alreadyLiked = comment.likes && comment.likes[currentUser.uid];
+        if (alreadyLiked) {
+          await fetch(`${FIREBASE_URL}${COMMENTS_PATH}/${cid}/likes/${currentUser.uid}.json?auth=${token}`, { method: 'DELETE' });
+          if (comment.likes) delete comment.likes[currentUser.uid];
+        } else {
+          await fetch(`${FIREBASE_URL}${COMMENTS_PATH}/${cid}/likes/${currentUser.uid}.json?auth=${token}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: 'true'
+          });
+          if (!comment.likes) comment.likes = {};
+          comment.likes[currentUser.uid] = true;
+        }
+        renderComments();
       });
     });
 
