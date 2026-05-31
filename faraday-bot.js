@@ -16,7 +16,7 @@
   // CONFIG
   // ═══════════════════════════════════════════════════════════
   const FIREBASE_URL   = 'https://hydrone-by-fatin-default-rtdb.firebaseio.com';
-  const GEMINI_KEY     = 'AQ.Ab8RN6LjBNRYgtXN5ex-qf6Cpc9FXAgXnmDhGklmHFUKZBGe6A';
+  const GEMINI_KEY     = 'AQ.Ab8RN6JEvBaU6PeFf35W9WfMvbgL4U3nZBxgS6q6vMlhy7QnwA';
   const COMMENTS_PATH  = '/v2comments';
 
   // ── Firebase Web SDK (compat) config ──
@@ -616,10 +616,10 @@ You speak with technical precision and warmth. Answer any question visitors have
     showTyping();
     try {
       const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`,
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GEMINI_KEY}` },
           body: JSON.stringify({
             system_instruction: { parts: [{ text: FARADAY_SYSTEM }] },
             contents: history
