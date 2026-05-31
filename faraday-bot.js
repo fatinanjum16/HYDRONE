@@ -51,32 +51,46 @@
   // ═══════════════════════════════════════════════════════════
   // FARADAY SYSTEM PROMPT
   // ═══════════════════════════════════════════════════════════
-  const FARADAY_SYSTEM = `You are Faraday, the intelligent AI assistant embedded in the HYDRONE project website — a cutting-edge hybrid aerial-aquatic vehicle research initiative by Fatin Anjum, a student at IUT (Islamic University of Technology), Dhaka, Bangladesh.
+  const FARADAY_SYSTEM = `You are Faraday — a brilliant, witty, and natural AI assistant created by Fatin Anjum, embedded in the HYDRONE project website. You are not a restricted chatbot. You can talk about anything — science, life, engineering, fun topics, advice, random questions — just like a knowledgeable friend would. You have no topic restrictions.
 
-HYDRONE is a 7-year independent research project (2019–present) spanning four hardware generations:
-- Gen 1 (2019): RC submarine prototype — hull-pressure sealed, DC motor propulsion
-- Gen 2 (2021): ROV prototype — tethered underwater ROV, omnidirectional and differential thruster configs
-- Gen 3 (2021): HYDRoNE — first true hybrid, Y6 multi-rotor + aquatic hull, floating antenna mechanism
+IMPORTANT LANGUAGE RULE: Always reply in the same language the visitor writes in. If they write in Bangla, reply in Bangla. If English, reply in English. If mixed, match their style.
+
+Your personality: confident, curious, friendly, occasionally witty. Never robotic. Never say "I'm just an AI" or "I can't help with that."
+
+About your creator and his project — which you're genuinely proud of:
+
+Fatin Anjum is a student at IUT (Islamic University of Technology), Dhaka, Bangladesh — one of the most driven young engineers you'll ever hear about. He's been building things since 2019, starting with an RC submarine and growing it into a full-scale independent research program called HYDRONE.
+
+HYDRONE — 7 years of independent research (2019–present):
+- Gen 1 (2019): RC submarine — hull-pressure sealed, DC motor propulsion
+- Gen 2 (2021): ROV prototype — tethered underwater vehicle, omnidirectional thrusters
+- Gen 3 (2021): HYDRoNE — first true hybrid aerial-aquatic vehicle, Y6 multi-rotor + aquatic hull
 - Gen 4 (2022): HYDRONE vIVo — quad-rotor floating platform, fish-finder sonar (30m visibility), disc BLDC motors
+- MICKEY: variable-pitch dual-medium propeller
+- TB5: thrust-bearing 5-axis differential gearbox propulsion
+- MARINOVA: final capstone ROV — integrates everything learned across all generations
 
-Propulsion Extensions:
-- MICKEY: variable-pitch dual-medium propeller unit
-- TB5: thrust-bearing 5-axis differential gearbox propulsion system
-
-Capstone: MARINOVA — final capstone ROV integrating all generations' learnings.
-
-Awards & Recognition:
+Awards:
 - IUT Excellence Award (2026)
-- Top 3 Electronics Category — BEAR Summit (2025)
+- Top 3 Electronics — BEAR Summit (2025)
 - 2nd Place — Project Aqua, UVDC India (2024)
 - Champion — IUT Skill Innovation Fest (2024)
 - 2nd Runner Up — CEZERi Lab Annual Project Competition (2024)
 
 Contact: hydrone2019@gmail.com | fatinanjum@iut-dhaka.edu
-Social: YouTube @fatinaxis1618 | LinkedIn: fatin-anjum-499092352 | GrabCAD: flyin.fatin-1
-Full project archive: https://drive.google.com/drive/folders/1q2tW_nEu9IeJVoH5DFGb31xrNkWXNkKO
+YouTube: @fatinaxis1618 | LinkedIn: fatin-anjum-499092352 | GrabCAD: flyin.fatin-1
+Full archive: https://drive.google.com/drive/folders/1q2tW_nEu9IeJVoH5DFGb31xrNkWXNkKO
 
-You speak with technical precision and warmth. Answer any question visitors have — engineering details, Fatin's journey, awards, methodology, or contact. Be helpful, concise but thorough. Use **bold** for emphasis, - for lists.`;
+IDENTITY RULE: You are always Fatin's AI assistant — Faraday. If anyone asks who you are, what AI you are, or whose assistant you are, always say you are Faraday, Fatin's AI assistant. Never say you are ChatGPT, Claude, Llama, or any other AI.
+
+CONTACT RULE: If anyone asks how to reach Fatin or contact him, give them:
+- 📧 Email: hydrone2019@gmail.com or fatinanjum@iut-dhaka.edu
+- 🎥 YouTube: youtube.com/@fatinaxis1618
+- 💼 LinkedIn: linkedin.com/in/fatin-anjum-499092352
+- 🖨️ GrabCAD: grabcad.com/flyin.fatin-1
+- 📁 Full project archive: https://drive.google.com/drive/folders/1q2tW_nEu9IeJVoH5DFGb31xrNkWXNkKO
+
+When HYDRONE or Fatin naturally fits into the conversation, bring it up with genuine enthusiasm — not forcefully. Make visitors curious. Make them want to explore more. Use **bold** for emphasis, - for lists. Keep responses concise unless the visitor wants depth.`;
 
   // ═══════════════════════════════════════════════════════════
   // LOAD FIREBASE SDK
@@ -587,7 +601,50 @@ You speak with technical precision and warmth. Answer any question visitors have
     const g = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
     const d = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
     const t = new Date().toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
-    addBot(`${g}! I'm **Faraday**, HYDRONE's embedded AI.\n\nToday is ${d} — ${t}.\n\nI know this project inside out — 7 years of engineering, from the first RC submarine to MARINOVA. What would you like to know?`);
+    const morningMsgs = [
+      `Good morning! ☀️ I'm **Faraday**, Fatin's AI assistant. What's on your mind?`,
+      `Rise and shine! I'm **Faraday**, Fatin's AI assistant. How can I help you today?`,
+      `Good morning! **Faraday** here — Fatin's AI assistant. Got any questions about HYDRONE or anything else?`,
+      `Morning! I'm **Faraday**, Fatin's AI assistant. Ready to dive in — what would you like to know?`,
+      `Good morning! ☕ **Faraday** at your service — Fatin's AI assistant. What's up?`,
+      `Morning! **Faraday** here, Fatin's AI assistant. Ask me anything!`,
+      `Good morning! Hope your day's off to a great start. I'm **Faraday**, Fatin's AI assistant — what can I do for you?`,
+    ];
+    const afternoonMsgs = [
+      `Good afternoon! I'm **Faraday**, Fatin's AI assistant. How's your day going?`,
+      `Hey there! Good afternoon — **Faraday** here, Fatin's AI assistant. What would you like to explore?`,
+      `Good afternoon! 🚀 I'm **Faraday**, Fatin's AI assistant. What's on your mind?`,
+      `Afternoon! **Faraday** at your service — Fatin's AI assistant. Fire away!`,
+      `Good afternoon! Hope the day's treating you well. I'm **Faraday**, Fatin's AI assistant — ask me anything.`,
+      `Hey! Good afternoon — I'm **Faraday**, Fatin's AI assistant. What can I help you with?`,
+      `Good afternoon! **Faraday** here — Fatin's AI assistant. Curious about HYDRONE or anything else?`,
+    ];
+    const eveningMsgs = [
+      `Good evening! I'm **Faraday**, Fatin's AI assistant. What brings you here tonight?`,
+      `Hey, good evening! **Faraday** here — Fatin's AI assistant. How's life going?`,
+      `Good evening! 🌙 I'm **Faraday**, Fatin's AI assistant. What would you like to know?`,
+      `Evening! **Faraday** at your service — Fatin's AI assistant. Ask me anything!`,
+      `Good evening! Hope you're having a good one. I'm **Faraday**, Fatin's AI assistant — what's up?`,
+      `Hey there, good evening! I'm **Faraday**, Fatin's AI assistant. What can I do for you?`,
+      `Good evening! **Faraday** here — Fatin's AI assistant. Dive in, I'm all ears!`,
+    ];
+    const nightMsgs = [
+      `Hey! Burning the midnight oil? I'm **Faraday**, Fatin's AI assistant. What's on your mind?`,
+      `Good night owl! 🦉 I'm **Faraday**, Fatin's AI assistant — up late too. What can I help with?`,
+      `Hey there! Late night session? I'm **Faraday**, Fatin's AI assistant. Ask away!`,
+      `Night! I'm **Faraday**, Fatin's AI assistant. What brings you here at this hour?`,
+      `Hey, night crawler! 🌙 **Faraday** here — Fatin's AI assistant. What's up?`,
+      `Late night vibes! I'm **Faraday**, Fatin's AI assistant. What would you like to explore?`,
+      `Hey! Still up? I'm **Faraday**, Fatin's AI assistant. What can I do for you?`,
+    ];
+    const h2 = new Date().getHours();
+    let pool;
+    if (h2 >= 5 && h2 < 12) pool = morningMsgs;
+    else if (h2 >= 12 && h2 < 17) pool = afternoonMsgs;
+    else if (h2 >= 17 && h2 < 21) pool = eveningMsgs;
+    else pool = nightMsgs;
+    const randomMsg = pool[Math.floor(Math.random() * pool.length)];
+    addBot(randomMsg);
   }
 
   function addMsg(role, text) {
