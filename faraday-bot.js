@@ -1,20 +1,41 @@
 /**
- * FARADAY-BOT.JS — HYDRONE AI System v2
+ * FARADAY-BOT.JS — HYDRONE AI System v3
  * ══════════════════════════════════════
- * • Faraday floating AI chatbot (Claude-powered, no limit)
- * • Asymmetric high-tech panel design (clip-path, status lights, grid borders)
- * • Per-page Drive modal — each explore button opens its own folder
- * • Truly PUBLIC comments via Firebase Realtime Database (all visitors share)
- *
- * HOW TO ADD: put this before </body> in every HTML file (after hydrone-nav.js)
- *   <script src="faraday-bot.js"></script>
+ * • Faraday floating AI chatbot (Gemini-powered)
+ * • Google Login for comments
+ * • Floating Facebook-style comment panel
+ * • Owner (Fatin) can delete all; users edit/delete own
+ * • Reply system
+ * • Firebase Realtime Database v2comments (fresh start)
  */
 
 (function () {
   'use strict';
 
   // ═══════════════════════════════════════════════════════════
-  // DRIVE FOLDER MAP — auto-matched by button href
+  // CONFIG
+  // ═══════════════════════════════════════════════════════════
+  const FIREBASE_URL   = 'https://hydrone-by-fatin-default-rtdb.firebaseio.com';
+  const GEMINI_KEY     = 'AIzaSyAQAb8RN6JTezauEofiOVaEDaOaVdvlqA0xJh0tYPw0j_0yFr7cwg';
+  const COMMENTS_PATH  = '/v2comments';
+
+  // ── Firebase Web SDK (compat) config ──
+  const FB_CONFIG = {
+    apiKey:            "AIzaSyAQAb8RN6JTezauEofiOVaEDaOaVdvlqA0xJh0tYPw0j_0yFr7cwg",
+    authDomain:        "hydrone-by-fatin.firebaseapp.com",
+    databaseURL:       "https://hydrone-by-fatin-default-rtdb.firebaseio.com",
+    projectId:         "hydrone-by-fatin",
+    storageBucket:     "hydrone-by-fatin.appspot.com",
+    messagingSenderId: "261476380539",
+    appId:             "1:261476380539:web:hydronebyfatin"
+  };
+
+  // Owner UID — Fatin's Google UID (set after first login, see console)
+  // To find: login with Google → open browser console → type: firebase.auth().currentUser.uid
+  const OWNER_UID = 'OWNER_UID_HERE';
+
+  // ═══════════════════════════════════════════════════════════
+  // DRIVE FOLDER MAP
   // ═══════════════════════════════════════════════════════════
   const DRIVE_FOLDERS = {
     '1obuUMq9pqX7kKowzimJOUle1-yBl_dXB': 'GEN 1 — RC SUBMARINE ARCHIVE',
@@ -26,23 +47,6 @@
     '1ysAoaKeFaQspUf2paplvcWQymNSggHOR': 'MARINOVA CAPSTONE ARCHIVE',
     '1q2tW_nEu9IeJVoH5DFGb31xrNkWXNkKO': 'HYDRONE — FULL PROJECT ARCHIVE',
   };
-
-  // ═══════════════════════════════════════════════════════════
-  // FIREBASE CONFIG — free Realtime Database for public comments
-  // ─────────────────────────────────────────────────────────
-  // SETUP (one-time, 2 minutes):
-  //   1. Go to https://console.firebase.google.com
-  //   2. Create project → Realtime Database → Start in test mode
-  //   3. Copy your database URL (looks like: https://YOUR-APP.firebaseio.com)
-  //   4. Replace the FIREBASE_URL below
-  // ═══════════════════════════════════════════════════════════
-  const FIREBASE_URL = 'https://hydrone-1618-default-rtdb.firebaseio.com';
-
-  // ═══════════════════════════════════════════════════════════
-  // GEMINI API KEY — paste your key below between the quotes
-  // ═══════════════════════════════════════════════════════════
-  const GEMINI_KEY = 'AQ.Ab8RN6L87dktugcnRQmZgNodRRw60r8cZmZxSIifbpF9tfhrVg';
-  // ↑ Replace with your actual Firebase Realtime Database URL
 
   // ═══════════════════════════════════════════════════════════
   // FARADAY SYSTEM PROMPT
@@ -75,7 +79,35 @@ Full project archive: https://drive.google.com/drive/folders/1q2tW_nEu9IeJVoH5DF
 You speak with technical precision and warmth. Answer any question visitors have — engineering details, Fatin's journey, awards, methodology, or contact. Be helpful, concise but thorough. Use **bold** for emphasis, - for lists.`;
 
   // ═══════════════════════════════════════════════════════════
-  // INJECT STYLES
+  // LOAD FIREBASE SDK
+  // ═══════════════════════════════════════════════════════════
+  function loadScript(src, cb) {
+    const s = document.createElement('script');
+    s.src = src; s.onload = cb; document.head.appendChild(s);
+  }
+
+  let fbApp, fbAuth, fbDB, currentUser = null;
+
+  function initFirebase() {
+    if (typeof firebase === 'undefined') {
+      loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js', () => {
+        loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js', () => {
+          loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js', () => {
+            fbApp  = firebase.initializeApp(FB_CONFIG);
+            fbAuth = firebase.auth();
+            fbDB   = firebase.database();
+            fbAuth.onAuthStateChanged(user => {
+              currentUser = user;
+              updateAuthUI();
+            });
+          });
+        });
+      });
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // STYLES
   // ═══════════════════════════════════════════════════════════
   const style = document.createElement('style');
   style.textContent = `
@@ -129,8 +161,6 @@ You speak with technical precision and warmth. Answer any question visitors have
   content: ''; position: absolute; top: 0; left: 0; right: 0; height: 80px; pointer-events:none;
   background: radial-gradient(ellipse at 50% 0%, rgba(0,255,231,0.07) 0%, transparent 70%);
 }
-
-/* header */
 #frd-header {
   padding: 16px 18px 14px;
   border-bottom: 1px solid rgba(0,255,231,0.07);
@@ -153,8 +183,6 @@ You speak with technical precision and warmth. Answer any question visitors have
   color:rgba(0,255,231,0.6);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.25s;flex-shrink:0;
 }
 #frd-close:hover { background:rgba(0,255,231,0.12); color:#00ffe7; border-color:rgba(0,255,231,0.4); transform:rotate(90deg); box-shadow:0 0 12px rgba(0,255,231,0.2); }
-
-/* messages */
 #frd-messages {
   flex:1;overflow-y:auto;padding:18px 16px;display:flex;flex-direction:column;gap:10px;
   min-height:0;max-height:340px;
@@ -170,8 +198,7 @@ You speak with technical precision and warmth. Answer any question visitors have
 .frd-msg.user .frd-bubble {
   background: linear-gradient(135deg, rgba(0,255,231,0.1), rgba(0,180,160,0.06));
   border:1px solid rgba(0,255,231,0.22);
-  border-radius: 16px 16px 4px 16px;
-  color:#e0f8ff;
+  border-radius: 16px 16px 4px 16px; color:#e0f8ff;
 }
 .frd-msg.bot .frd-bubble {
   background: linear-gradient(135deg, rgba(255,156,56,0.07), rgba(200,100,20,0.04));
@@ -179,14 +206,12 @@ You speak with technical precision and warmth. Answer any question visitors have
   border-left: 2px solid rgba(255,156,56,0.45);
   border-radius: 4px 16px 16px 16px;
 }
-.frd-bubble strong{color:#00ffe7; font-weight:600;} .frd-bubble em{color:#ffc96b;font-style:normal}
+.frd-bubble strong{color:#00ffe7;font-weight:600;} .frd-bubble em{color:#ffc96b;font-style:normal}
 .frd-typing .frd-bubble{padding:13px 18px}
 .frd-dots{display:flex;gap:5px;align-items:center}
 .frd-dots span{width:6px;height:6px;background:rgba(255,156,56,0.5);border-radius:50%;animation:frdDot 1.4s ease-in-out infinite}
 .frd-dots span:nth-child(2){animation-delay:0.2s} .frd-dots span:nth-child(3){animation-delay:0.4s}
 @keyframes frdDot{0%,80%,100%{transform:scale(0.6) translateY(0);opacity:0.3}40%{transform:scale(1.1) translateY(-3px);opacity:1}}
-
-/* input */
 #frd-input-row{
   padding:12px 14px 14px;
   border-top:1px solid rgba(0,255,231,0.07);
@@ -229,8 +254,7 @@ You speak with technical precision and warmth. Answer any question visitors have
   position:absolute;top:0;left:0;right:0;height:36px;
   background:rgba(0,20,40,0.95);border-bottom:1px solid rgba(0,255,231,0.12);
   display:flex;align-items:center;padding:0 16px;z-index:2;
-  font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;color:rgba(0,255,231,0.5);
-  gap:10px;
+  font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;color:rgba(0,255,231,0.5);gap:10px;
 }
 #frd-drive-label{flex:1;text-transform:uppercase;}
 #frd-drive-close {
@@ -243,147 +267,282 @@ You speak with technical precision and warmth. Answer any question visitors have
 #frd-drive-close:hover{background:rgba(0,255,231,0.1);box-shadow:0 0 12px rgba(0,255,231,0.3)}
 #frd-drive-iframe{width:100%;height:calc(100% - 36px);margin-top:36px;border:none;filter:invert(0.05) hue-rotate(160deg)}
 
-/* ── HIGH-TECH PANEL REDESIGN ── */
-.gen-block .gen-content{border-left:none !important;padding-left:36px;position:relative}
-.gen-block .gen-content::before{
-  content:'';position:absolute;left:0;top:0;bottom:0;width:2px;
-  background:linear-gradient(to bottom,var(--teal2),rgba(0,201,184,0.3),transparent);
-  box-shadow:0 0 8px rgba(0,255,231,0.4);
+/* ── COMMENT TRIGGER BUTTON ── */
+#hc-trigger-btn {
+  position: fixed; bottom: 32px; right: 32px; z-index: 19000;
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, rgba(0,20,40,0.97), rgba(0,10,28,0.99));
+  border: 1px solid rgba(0,255,231,0.3); border-radius: 40px;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px rgba(0,255,231,0.06), 0 8px 32px rgba(0,0,0,0.6), 0 0 20px rgba(0,255,231,0.1);
+  transition: all 0.3s cubic-bezier(0.34,1.4,0.64,1);
+  font-family: 'Orbitron', sans-serif; font-size: 10px; letter-spacing: 3px;
+  color: #00ffe7; text-transform: uppercase;
 }
-.gen-badge{position:relative}
-.gen-badge::before{
-  content:'● ACTIVE';position:absolute;top:0;left:0;
-  font-family:'Space Mono',monospace;font-size:7px;letter-spacing:2px;
-  color:#00ff88;text-shadow:0 0 5px #00ff88;animation:sDot 2s ease-in-out infinite;
+#hc-trigger-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 0 1px rgba(0,255,231,0.5), 0 8px 40px rgba(0,0,0,0.7), 0 0 30px rgba(0,255,231,0.25);
+  border-color: rgba(0,255,231,0.6);
 }
-.gen-desc{
-  background:rgba(0,30,50,0.35);border:1px solid rgba(0,201,184,0.1);
-  clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,0 100%);
-  padding:14px 18px !important;position:relative;
-}
-.gen-desc::after{
-  content:'';position:absolute;top:0;right:0;width:18px;height:18px;
-  border-top:1px solid rgba(0,255,231,0.4);border-right:1px solid rgba(0,255,231,0.4);
-}
-.ext-card{
-  clip-path:polygon(0 0,calc(100% - 24px) 0,100% 24px,100% 100%,24px 100%,0 calc(100% - 24px)) !important;
-  border-radius:0 !important;position:relative;
-}
-.ext-card::after{
-  content:'';position:absolute;top:0;right:0;width:24px;height:24px;
-  border-top:1px solid rgba(255,156,56,0.5);border-right:1px solid rgba(255,156,56,0.5);pointer-events:none;
-}
-.ext-card .ext-header{position:relative}
-.ext-card .ext-header::before{
-  content:'';position:absolute;top:3px;right:8px;
-  width:7px;height:7px;background:#ffb800;border-radius:50%;
-  box-shadow:0 0 8px #ffb800;animation:sDot 2.5s ease-in-out 0.3s infinite;
-}
-.how-box,.next-box{
-  clip-path:polygon(0 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%) !important;
-  border-radius:0 !important;position:relative;
-}
-.how-box::after,.next-box::after{
-  content:'';position:absolute;bottom:0;right:0;width:12px;height:12px;
-  border-bottom:1px solid rgba(0,201,184,0.35);border-right:1px solid rgba(0,201,184,0.35);pointer-events:none;
-}
-.inno-item{
-  clip-path:polygon(10px 0%,100% 0%,100% calc(100% - 10px),calc(100% - 10px) 100%,0% 100%,0% 10px) !important;
-  border-radius:0 !important;position:relative;
-}
-.inno-item::after{
-  content:'';position:absolute;top:0;left:0;width:10px;height:10px;
-  border-top:1px solid rgba(0,255,231,0.35);border-left:1px solid rgba(0,255,231,0.35);pointer-events:none;
-}
-.capstone-badge{
-  clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px)) !important;
-  border-radius:0 !important;
-}
-.journey-card{
-  clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px)) !important;
-  border-radius:0 !important;
+#hc-trigger-btn svg { width:18px; height:18px; fill:#00ffe7; flex-shrink:0; }
+#hc-count-badge {
+  background: rgba(0,255,231,0.15); border: 1px solid rgba(0,255,231,0.3);
+  border-radius: 20px; padding: 2px 8px;
+  font-family: 'Space Mono', monospace; font-size: 9px; color: #00ffe7;
+  min-width: 20px; text-align: center;
 }
 
-/* ── PUBLIC COMMENTS ── */
-#hydrone-comments {
-  max-width:960px;margin:60px auto 0;padding:0 40px 80px;position:relative;z-index:10;
+/* ── COMMENT FLOATING OVERLAY ── */
+#hc-overlay {
+  position: fixed; inset: 0; z-index: 20000;
+  background: rgba(0,4,14,0.85); backdrop-filter: blur(12px);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s ease;
 }
-#hydrone-comments::before {
-  content:'';display:block;width:100%;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(0,255,231,0.3),rgba(255,156,56,0.2),transparent);
-  margin-bottom:48px;
+#hc-overlay.open { opacity: 1; pointer-events: all; }
+
+#hc-panel {
+  position: fixed; top: 0; right: 0; bottom: 0;
+  width: min(480px, 100vw); z-index: 20001;
+  background: linear-gradient(160deg, rgba(4,14,32,0.99) 0%, rgba(2,8,22,1) 100%);
+  border-left: 1px solid rgba(0,255,231,0.12);
+  display: flex; flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.4s cubic-bezier(0.34,1.1,0.64,1);
+  box-shadow: -20px 0 60px rgba(0,0,0,0.8);
 }
-.hc-label{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:6px;color:var(--teal);text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:14px}
-.hc-label::after{content:'';flex:1;height:1px;background:rgba(0,201,184,0.15)}
-.hc-heading{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:700;color:var(--white);letter-spacing:3px;margin-bottom:32px;text-transform:uppercase}
-.hc-heading span{color:var(--teal2)}
-.hc-form-wrap{
-  background:rgba(0,20,40,0.5);border:1px solid rgba(0,255,231,0.14);
-  clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px));
-  padding:28px 28px 22px;margin-bottom:40px;position:relative;
+#hc-panel.open { transform: translateX(0); }
+
+/* Panel header */
+#hc-panel-header {
+  padding: 20px 22px 16px;
+  border-bottom: 1px solid rgba(0,255,231,0.08);
+  display: flex; align-items: center; gap: 14px; flex-shrink: 0;
+  background: linear-gradient(180deg, rgba(0,255,231,0.03) 0%, transparent 100%);
 }
-.hc-form-wrap::before{
-  content:'// LEAVE A MESSAGE';position:absolute;top:0;left:24px;
-  font-family:'Space Mono',monospace;font-size:7.5px;letter-spacing:3px;
-  color:rgba(0,255,231,0.45);background:rgba(0,20,40,0.95);
-  padding:3px 8px;border:1px solid rgba(0,255,231,0.1);border-top:none;
+#hc-panel-title { flex:1; }
+#hc-panel-title h3 {
+  font-family: 'Orbitron', sans-serif; font-size: 13px; font-weight: 700;
+  letter-spacing: 4px; color: #00ffe7; text-transform: uppercase; margin: 0;
+  text-shadow: 0 0 12px rgba(0,255,231,0.4);
 }
-.hc-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
-.hc-input,.hc-textarea{
-  background:rgba(0,255,231,0.03);border:1px solid rgba(0,255,231,0.14);
-  color:#c8e6f5;font-family:'Exo 2',sans-serif;font-size:13.5px;
-  padding:10px 14px;outline:none;width:100%;
-  clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px);
-  transition:border-color 0.2s,box-shadow 0.2s;
+#hc-panel-title p {
+  font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: 2px;
+  color: rgba(0,255,231,0.3); margin: 4px 0 0; text-transform: uppercase;
 }
-.hc-input::placeholder,.hc-textarea::placeholder{color:rgba(100,160,185,0.35);font-size:12px}
-.hc-input:focus,.hc-textarea:focus{border-color:rgba(0,255,231,0.4);box-shadow:0 0 14px rgba(0,255,231,0.08)}
-.hc-textarea{resize:vertical;min-height:90px;margin-bottom:14px;display:block}
-.hc-submit{
-  display:inline-flex;align-items:center;gap:10px;padding:11px 24px;
-  background:rgba(0,255,231,0.08);border:1px solid rgba(0,255,231,0.4);
-  clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);
-  font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:3px;
-  color:#00ffe7;cursor:pointer;text-transform:uppercase;transition:all 0.25s;
+#hc-panel-close {
+  width: 34px; height: 34px; background: rgba(0,255,231,0.04);
+  border: 1px solid rgba(0,255,231,0.15); border-radius: 50%;
+  color: rgba(0,255,231,0.6); font-size: 16px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.25s; flex-shrink: 0;
 }
-.hc-submit:hover{background:rgba(0,255,231,0.18);box-shadow:0 0 20px rgba(0,255,231,0.3)}
-.hc-submit:disabled{opacity:0.4;pointer-events:none}
-.hc-list{display:flex;flex-direction:column;gap:16px}
-.hc-empty{font-family:'Space Mono',monospace;font-size:11px;color:rgba(100,160,180,0.4);letter-spacing:2px;text-align:center;padding:40px 0;text-transform:uppercase}
-.hc-loading{display:flex;align-items:center;justify-content:center;gap:8px;padding:30px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:rgba(0,201,184,0.4);text-transform:uppercase}
-.hc-loading::before{content:'';width:12px;height:12px;border:1px solid rgba(0,201,184,0.4);border-top-color:var(--teal);border-radius:50%;animation:hcSpin 0.8s linear infinite}
-@keyframes hcSpin{to{transform:rotate(360deg)}}
-.hc-comment{
-  background:rgba(0,15,32,0.5);border:1px solid rgba(0,201,184,0.1);
-  clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%);
-  padding:16px 20px;position:relative;animation:hcIn 0.4s ease-out;
+#hc-panel-close:hover { background: rgba(0,255,231,0.12); color: #00ffe7; transform: rotate(90deg); }
+
+/* Auth section */
+#hc-auth-section {
+  padding: 16px 22px; border-bottom: 1px solid rgba(0,255,231,0.06); flex-shrink: 0;
 }
-@keyframes hcIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.hc-meta{display:flex;align-items:baseline;gap:12px;margin-bottom:8px}
-.hc-author{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;color:var(--teal2)}
-.hc-time{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1.5px;color:rgba(100,160,185,0.5)}
-.hc-text{font-family:'Exo 2',sans-serif;font-size:14px;color:#b8d8f0;line-height:1.7}
-.hc-comment.is-reply{margin-left:28px;border-left:2px solid rgba(255,156,56,0.5);background:rgba(20,10,0,0.4);border-top-color:rgba(255,156,56,0.18)}
-.hc-comment.is-reply .hc-author{color:var(--amber2)}
-.hc-reply-tag{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:1.5px;color:var(--amber);background:rgba(255,156,56,0.08);border:1px solid rgba(255,156,56,0.2);padding:2px 7px;margin-left:auto;text-transform:uppercase}
-.hc-load-more{display:flex;justify-content:center;margin-top:24px}
-.hc-load-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 20px;background:transparent;border:1px solid rgba(0,201,184,0.25);clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px);font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(0,201,184,0.6);cursor:pointer;transition:all 0.2s;text-transform:uppercase}
-.hc-load-btn:hover{border-color:rgba(0,201,184,0.5);color:var(--teal);box-shadow:0 0 12px rgba(0,201,184,0.15)}
-.hc-toast{position:fixed;bottom:108px;right:32px;z-index:20000;background:rgba(0,8,22,0.97);border:1px solid rgba(0,255,231,0.4);clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:#00ffe7;padding:10px 18px;box-shadow:0 0 20px rgba(0,255,231,0.2);opacity:0;transform:translateY(10px);transition:opacity 0.3s,transform 0.3s;pointer-events:none;text-transform:uppercase}
-.hc-toast.show{opacity:1;transform:translateY(0)}
+#hc-login-btn {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 18px; width: 100%;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px; cursor: pointer; color: #c8e6f5;
+  font-family: 'Exo 2', sans-serif; font-size: 13px;
+  transition: all 0.2s;
+}
+#hc-login-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.25); }
+#hc-login-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+#hc-user-info {
+  display: flex; align-items: center; gap: 10px;
+}
+#hc-user-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 1px solid rgba(0,255,231,0.3); flex-shrink: 0;
+}
+#hc-user-name {
+  flex: 1; font-family: 'Exo 2', sans-serif; font-size: 13px; color: #c8e6f5;
+}
+#hc-logout-btn {
+  background: transparent; border: 1px solid rgba(255,100,100,0.3);
+  border-radius: 6px; color: rgba(255,120,120,0.7); font-size: 10px;
+  font-family: 'Space Mono', monospace; letter-spacing: 1px;
+  padding: 4px 10px; cursor: pointer; transition: all 0.2s;
+}
+#hc-logout-btn:hover { border-color: rgba(255,100,100,0.6); color: #ff8888; }
+
+/* Comment input */
+#hc-input-section {
+  padding: 14px 22px; border-bottom: 1px solid rgba(0,255,231,0.06); flex-shrink: 0;
+}
+#hc-input-section.hidden { display: none; }
+#hc-replying-to {
+  font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 1.5px;
+  color: rgba(255,156,56,0.7); margin-bottom: 8px;
+  display: flex; align-items: center; gap: 8px;
+}
+#hc-cancel-reply {
+  background: transparent; border: none; color: rgba(255,156,56,0.5);
+  cursor: pointer; font-size: 14px; line-height: 1; padding: 0;
+}
+#hc-cancel-reply:hover { color: #ff9c38; }
+#hc-comment-input {
+  width: 100%; background: rgba(0,255,231,0.03);
+  border: 1px solid rgba(0,255,231,0.14); border-radius: 10px;
+  color: #c8e6f5; font-family: 'Exo 2', sans-serif; font-size: 13px;
+  padding: 10px 14px; outline: none; resize: none; min-height: 72px;
+  transition: border-color 0.2s, box-shadow 0.2s; box-sizing: border-box;
+}
+#hc-comment-input::placeholder { color: rgba(100,160,185,0.35); font-size: 12px; }
+#hc-comment-input:focus { border-color: rgba(0,255,231,0.35); box-shadow: 0 0 12px rgba(0,255,231,0.07); }
+#hc-submit-row { display: flex; justify-content: flex-end; margin-top: 10px; }
+#hc-submit-btn {
+  display: inline-flex; align-items: center; gap: 8px; padding: 9px 20px;
+  background: rgba(0,255,231,0.08); border: 1px solid rgba(0,255,231,0.4);
+  clip-path: polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);
+  font-family: 'Orbitron', sans-serif; font-size: 9px; letter-spacing: 3px;
+  color: #00ffe7; cursor: pointer; text-transform: uppercase; transition: all 0.25s;
+}
+#hc-submit-btn:hover { background: rgba(0,255,231,0.18); box-shadow: 0 0 16px rgba(0,255,231,0.25); }
+#hc-submit-btn:disabled { opacity: 0.4; pointer-events: none; }
+
+/* Comments list */
+#hc-list-section {
+  flex: 1; overflow-y: auto; padding: 16px 22px;
+  scrollbar-width: thin; scrollbar-color: rgba(0,255,231,0.1) transparent;
+}
+#hc-list-section::-webkit-scrollbar { width: 3px; }
+#hc-list-section::-webkit-scrollbar-thumb { background: rgba(0,255,231,0.1); border-radius: 3px; }
+
+.hc-empty {
+  font-family: 'Space Mono', monospace; font-size: 11px;
+  color: rgba(100,160,180,0.35); letter-spacing: 2px;
+  text-align: center; padding: 50px 0; text-transform: uppercase;
+}
+.hc-loading {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 40px; font-family: 'Space Mono', monospace; font-size: 10px;
+  letter-spacing: 2px; color: rgba(0,201,184,0.4); text-transform: uppercase;
+}
+.hc-loading::before {
+  content: ''; width: 12px; height: 12px;
+  border: 1px solid rgba(0,201,184,0.4); border-top-color: #00c9b8;
+  border-radius: 50%; animation: hcSpin 0.8s linear infinite; flex-shrink: 0;
+}
+@keyframes hcSpin { to { transform: rotate(360deg); } }
+
+/* Single comment */
+.hc-comment {
+  background: rgba(0,12,28,0.6); border: 1px solid rgba(0,201,184,0.1);
+  border-radius: 10px; padding: 14px 16px; margin-bottom: 10px;
+  animation: hcIn 0.35s ease-out; position: relative;
+}
+@keyframes hcIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+.hc-comment.is-reply {
+  margin-left: 24px; margin-bottom: 8px;
+  border-left: 2px solid rgba(255,156,56,0.4);
+  background: rgba(20,8,0,0.5); border-color: rgba(255,156,56,0.15);
+}
+.hc-comment-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.hc-avatar {
+  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+  border: 1px solid rgba(0,255,231,0.2);
+}
+.hc-comment.is-reply .hc-avatar { border-color: rgba(255,156,56,0.3); }
+.hc-meta { flex: 1; min-width: 0; }
+.hc-author {
+  font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 700;
+  letter-spacing: 2px; color: #00c9b8; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.hc-comment.is-reply .hc-author { color: #ff9c38; }
+.hc-time {
+  font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: 1px;
+  color: rgba(100,160,185,0.45); margin-top: 2px;
+}
+.hc-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+.hc-action-btn {
+  background: transparent; border: 1px solid transparent;
+  border-radius: 5px; padding: 3px 8px; cursor: pointer;
+  font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: 1px;
+  text-transform: uppercase; transition: all 0.2s; line-height: 1.4;
+}
+.hc-reply-btn { color: rgba(0,201,184,0.6); }
+.hc-reply-btn:hover { border-color: rgba(0,201,184,0.4); color: #00c9b8; background: rgba(0,201,184,0.06); }
+.hc-edit-btn { color: rgba(180,180,100,0.6); }
+.hc-edit-btn:hover { border-color: rgba(200,200,80,0.4); color: #d4d460; background: rgba(200,200,80,0.06); }
+.hc-del-btn { color: rgba(255,100,100,0.5); }
+.hc-del-btn:hover { border-color: rgba(255,100,100,0.4); color: #ff7070; background: rgba(255,100,100,0.06); }
+.hc-text {
+  font-family: 'Exo 2', sans-serif; font-size: 13.5px;
+  color: #b0d0e8; line-height: 1.7;
+}
+.hc-edited-tag {
+  font-family: 'Space Mono', monospace; font-size: 8px;
+  color: rgba(150,150,80,0.5); letter-spacing: 1px; margin-top: 4px;
+}
+
+/* Inline edit box */
+.hc-edit-wrap { margin-top: 8px; }
+.hc-edit-textarea {
+  width: 100%; background: rgba(0,255,231,0.04);
+  border: 1px solid rgba(0,255,231,0.25); border-radius: 7px;
+  color: #c8e6f5; font-family: 'Exo 2', sans-serif; font-size: 13px;
+  padding: 8px 12px; outline: none; resize: none; min-height: 60px;
+  box-sizing: border-box;
+}
+.hc-edit-row { display: flex; gap: 8px; margin-top: 8px; justify-content: flex-end; }
+.hc-save-btn, .hc-cancel-btn {
+  padding: 5px 14px; border-radius: 5px; cursor: pointer;
+  font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 1px;
+  text-transform: uppercase; transition: all 0.2s;
+}
+.hc-save-btn { background: rgba(0,255,231,0.1); border: 1px solid rgba(0,255,231,0.3); color: #00ffe7; }
+.hc-save-btn:hover { background: rgba(0,255,231,0.2); }
+.hc-cancel-btn { background: transparent; border: 1px solid rgba(150,150,150,0.2); color: rgba(150,150,150,0.6); }
+.hc-cancel-btn:hover { border-color: rgba(150,150,150,0.4); color: #aaa; }
+
+/* Toast */
+.hc-toast {
+  position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(10px);
+  z-index: 25000; background: rgba(0,8,22,0.97);
+  border: 1px solid rgba(0,255,231,0.4);
+  clip-path: polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);
+  font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 2px;
+  color: #00ffe7; padding: 10px 20px;
+  box-shadow: 0 0 20px rgba(0,255,231,0.2);
+  opacity: 0; transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none; text-transform: uppercase; white-space: nowrap;
+}
+.hc-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.hc-toast.error { border-color: rgba(255,100,100,0.4); color: #ff8888; box-shadow: 0 0 20px rgba(255,100,100,0.15); }
+
+/* High-tech panel design (kept from v2) */
+.gen-block .gen-content{border-left:none !important;padding-left:36px;position:relative}
+.gen-block .gen-content::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--teal2),rgba(0,201,184,0.3),transparent);box-shadow:0 0 8px rgba(0,255,231,0.4);}
+.gen-desc{background:rgba(0,30,50,0.35);border:1px solid rgba(0,201,184,0.1);clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,0 100%);padding:14px 18px !important;position:relative;}
+.gen-desc::after{content:'';position:absolute;top:0;right:0;width:18px;height:18px;border-top:1px solid rgba(0,255,231,0.4);border-right:1px solid rgba(0,255,231,0.4);}
+.ext-card{clip-path:polygon(0 0,calc(100% - 24px) 0,100% 24px,100% 100%,24px 100%,0 calc(100% - 24px)) !important;border-radius:0 !important;position:relative;}
+.ext-card::after{content:'';position:absolute;top:0;right:0;width:24px;height:24px;border-top:1px solid rgba(255,156,56,0.5);border-right:1px solid rgba(255,156,56,0.5);pointer-events:none;}
+.how-box,.next-box{clip-path:polygon(0 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%) !important;border-radius:0 !important;position:relative;}
+.how-box::after,.next-box::after{content:'';position:absolute;bottom:0;right:0;width:12px;height:12px;border-bottom:1px solid rgba(0,201,184,0.35);border-right:1px solid rgba(0,201,184,0.35);pointer-events:none;}
+.inno-item{clip-path:polygon(10px 0%,100% 0%,100% calc(100% - 10px),calc(100% - 10px) 100%,0% 100%,0% 10px) !important;border-radius:0 !important;position:relative;}
+.capstone-badge{clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px)) !important;border-radius:0 !important;}
+.journey-card{clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px)) !important;border-radius:0 !important;}
 
 @media(max-width:600px){
   #faraday-panel{width:calc(100vw - 20px);left:10px;bottom:100px;max-height:calc(100vh - 130px);border-radius:16px 16px 16px 6px}
   #faraday-trigger{bottom:22px;left:22px}
-  #hydrone-comments{padding:0 18px 60px}
-  .hc-row{grid-template-columns:1fr}
+  #hc-trigger-btn{bottom:22px;right:22px;padding:10px 14px;font-size:9px}
+  #hc-panel{width:100vw}
   #frd-drive-frame-wrap{width:96vw;height:80vh}
 }
 `;
   document.head.appendChild(style);
 
   // ═══════════════════════════════════════════════════════════
-  // FARADAY TRIGGER + PANEL
+  // FARADAY CHATBOT
   // ═══════════════════════════════════════════════════════════
   const trigger = document.createElement('button');
   trigger.id = 'faraday-trigger';
@@ -413,15 +572,10 @@ You speak with technical precision and warmth. Answer any question visitors have
     </div>`;
   document.body.appendChild(panel);
 
-  // chat state
   const history = [];
   let isOpen = false, greeted = false;
 
-  function openPanel() {
-    panel.classList.add('open'); isOpen = true;
-    if (!greeted) { greeted = true; greet(); }
-    setTimeout(() => document.getElementById('frd-input').focus(), 300);
-  }
+  function openPanel() { panel.classList.add('open'); isOpen = true; if (!greeted) { greeted = true; greet(); } setTimeout(() => document.getElementById('frd-input').focus(), 300); }
   function closePanel() { panel.classList.remove('open'); isOpen = false; }
 
   trigger.addEventListener('click', () => isOpen ? closePanel() : openPanel());
@@ -443,9 +597,7 @@ You speak with technical precision and warmth. Answer any question visitors have
     const b = document.createElement('div');
     b.className = 'frd-bubble';
     b.innerHTML = text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>').replace(/\n/g,'<br>');
-    wrap.appendChild(b);
-    msgs.appendChild(wrap);
-    msgs.scrollTop = msgs.scrollHeight;
+    wrap.appendChild(b); msgs.appendChild(wrap); msgs.scrollTop = msgs.scrollHeight;
   }
   function addBot(t) { addMsg('bot', t); }
   function addUser(t) { addMsg('user', t); }
@@ -480,8 +632,15 @@ You speak with technical precision and warmth. Answer any question visitors have
         const reply = data.candidates[0].content.parts.map(p => p.text).join('\n');
         history.push({ role: 'model', parts: [{ text: reply }] });
         addBot(reply);
-      } else { addBot('Transmission error. Please try again.'); }
-    } catch { hideTyping(); addBot('Connection lost. Check your network and try again.'); }
+      } else if (data.error) {
+        addBot(`⚠ API Error: ${data.error.message || 'Unknown error. Check API key.'}`);
+      } else {
+        addBot('Transmission error. Please try again.');
+      }
+    } catch(err) {
+      hideTyping();
+      addBot('Connection lost. Check your network and try again.');
+    }
   }
 
   function sendMsg() {
@@ -510,10 +669,7 @@ You speak with technical precision and warmth. Answer any question visitors have
   document.getElementById('frd-drive-close').addEventListener('click', () => driveModal.classList.remove('open'));
   driveModal.addEventListener('click', e => { if (e.target === driveModal) driveModal.classList.remove('open'); });
 
-  function extractFolderId(href) {
-    const m = href.match(/\/folders\/([a-zA-Z0-9_-]+)/);
-    return m ? m[1] : null;
-  }
+  function extractFolderId(href) { const m = href.match(/\/folders\/([a-zA-Z0-9_-]+)/); return m ? m[1] : null; }
 
   function hookExploreBtns() {
     document.querySelectorAll('.explore-btn').forEach(btn => {
@@ -536,140 +692,362 @@ You speak with technical precision and warmth. Answer any question visitors have
   new MutationObserver(hookExploreBtns).observe(document.body, { childList: true, subtree: true });
 
   // ═══════════════════════════════════════════════════════════
-  // PUBLIC COMMENTS — Firebase Realtime Database
+  // COMMENT SYSTEM — Google Login + Firebase
   // ═══════════════════════════════════════════════════════════
-  let commentsPage = 1;
-  const PER_PAGE = 8;
   let allComments = [];
+  let replyingTo = null; // { id, authorName }
 
-  function timeAgo(ts) {
-    const s = (Date.now() - ts) / 1000;
-    if (s < 60) return 'just now';
-    if (s < 3600) return `${Math.floor(s/60)}m ago`;
-    if (s < 86400) return `${Math.floor(s/3600)}h ago`;
-    return new Date(ts).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
-  }
   function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-  function showToast(msg) {
+  function showToast(msg, isError) {
     let t = document.querySelector('.hc-toast');
     if (!t) { t = document.createElement('div'); t.className = 'hc-toast'; document.body.appendChild(t); }
-    t.textContent = msg; t.classList.add('show');
+    t.textContent = msg;
+    t.className = 'hc-toast' + (isError ? ' error' : '');
+    t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 3000);
   }
 
+  function formatDate(ts) {
+    const d = new Date(ts);
+    const now = Date.now();
+    const s = (now - ts) / 1000;
+    if (s < 60) return 'just now';
+    if (s < 3600) return `${Math.floor(s/60)}m ago`;
+    if (s < 86400) return `${Math.floor(s/3600)}h ago`;
+    if (s < 86400 * 7) return `${Math.floor(s/86400)}d ago`;
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) +
+           ' · ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function isOwner() {
+    return currentUser && currentUser.uid === OWNER_UID;
+  }
+
+  function canEdit(comment) {
+    return currentUser && currentUser.uid === comment.uid;
+  }
+
+  function canDelete(comment) {
+    return currentUser && (currentUser.uid === comment.uid || isOwner());
+  }
+
+  // ── Auth UI ──
+  function updateAuthUI() {
+    const loginBtn  = document.getElementById('hc-login-btn');
+    const userInfo  = document.getElementById('hc-user-info');
+    const inputSec  = document.getElementById('hc-input-section');
+    if (!loginBtn) return;
+
+    if (currentUser) {
+      loginBtn.style.display  = 'none';
+      userInfo.style.display  = 'flex';
+      inputSec.classList.remove('hidden');
+      document.getElementById('hc-user-avatar').src = currentUser.photoURL || '';
+      document.getElementById('hc-user-name').textContent = currentUser.displayName || currentUser.email;
+    } else {
+      loginBtn.style.display  = 'flex';
+      userInfo.style.display  = 'none';
+      inputSec.classList.add('hidden');
+    }
+    renderComments();
+  }
+
+  function signInGoogle() {
+    if (typeof firebase === 'undefined') { showToast('Auth loading, try again...', true); return; }
+    const provider = new firebase.auth.GoogleAuthProvider();
+    fbAuth.signInWithPopup(provider).catch(err => showToast('Login failed: ' + err.message, true));
+  }
+
+  function signOut() {
+    fbAuth.signOut().then(() => showToast('Signed out'));
+  }
+
+  // ── Render ──
   function renderComments() {
-    const list = document.getElementById('hc-list');
-    const loadWrap = document.getElementById('hc-load-more');
+    const list = document.getElementById('hc-list-section');
     if (!list) return;
-    list.innerHTML = '';
+
     if (allComments.length === 0) {
       list.innerHTML = '<div class="hc-empty">No transmissions yet — be the first.</div>';
-      if (loadWrap) loadWrap.style.display = 'none';
+      updateBadge(0);
       return;
     }
-    const sorted = [...allComments].sort((a,b) => b.ts - a.ts);
-    const shown = sorted.slice(0, commentsPage * PER_PAGE);
-    shown.forEach(c => {
-      const el = document.createElement('div');
-      el.className = 'hc-comment' + (c.isReply ? ' is-reply' : '');
-      el.innerHTML = `
+
+    // Sort: top-level by time desc, replies grouped under parent
+    const topLevel = allComments.filter(c => !c.parentId).sort((a,b) => b.ts - a.ts);
+    const replies   = allComments.filter(c => c.parentId);
+
+    list.innerHTML = '';
+    let total = 0;
+
+    topLevel.forEach(c => {
+      list.appendChild(buildCommentEl(c, false));
+      total++;
+      replies.filter(r => r.parentId === c.id).sort((a,b) => a.ts - b.ts).forEach(r => {
+        list.appendChild(buildCommentEl(r, true));
+        total++;
+      });
+    });
+
+    updateBadge(total);
+  }
+
+  function buildCommentEl(c, isReply) {
+    const el = document.createElement('div');
+    el.className = 'hc-comment' + (isReply ? ' is-reply' : '');
+    el.dataset.id = c.id;
+
+    const avatar = c.photoURL
+      ? `<img class="hc-avatar" src="${esc(c.photoURL)}" alt="" onerror="this.style.display='none'">`
+      : `<div class="hc-avatar" style="background:rgba(0,201,184,0.15);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:10px;color:#00c9b8;">${esc((c.name||'?')[0].toUpperCase())}</div>`;
+
+    const canEditThis   = canEdit(c);
+    const canDeleteThis = canDelete(c);
+
+    const actionBtns = `
+      ${currentUser && !isReply ? `<button class="hc-action-btn hc-reply-btn" data-id="${c.id}" data-name="${esc(c.name)}">↩ Reply</button>` : ''}
+      ${canEditThis   ? `<button class="hc-action-btn hc-edit-btn"  data-id="${c.id}">Edit</button>` : ''}
+      ${canDeleteThis ? `<button class="hc-action-btn hc-del-btn"   data-id="${c.id}">Del</button>` : ''}
+    `;
+
+    el.innerHTML = `
+      <div class="hc-comment-top">
+        ${avatar}
         <div class="hc-meta">
-          <span class="hc-author">${esc(c.name)}</span>
-          <span class="hc-time">${timeAgo(c.ts)}</span>
-          ${c.isReply ? '<span class="hc-reply-tag">✦ Fatin</span>' : ''}
+          <div class="hc-author">${esc(c.name)}</div>
+          <div class="hc-time">${formatDate(c.ts)}${c.edited ? ' · edited' : ''}</div>
         </div>
-        <div class="hc-text">${esc(c.text).replace(/\n/g,'<br>')}</div>`;
-      list.appendChild(el);
-    });
-    if (loadWrap) loadWrap.style.display = allComments.length > commentsPage * PER_PAGE ? 'flex' : 'none';
-  }
-
-  async function fetchComments() {
-    const list = document.getElementById('hc-list');
-    if (!list) return;
-    list.innerHTML = '<div class="hc-loading">LOADING TRANSMISSIONS</div>';
-    try {
-      const res = await fetch(`${FIREBASE_URL}/comments.json`);
-      const data = await res.json();
-      if (data) {
-        allComments = Object.entries(data).map(([id, v]) => ({ id, ...v }));
-      } else { allComments = []; }
-    } catch {
-      allComments = [];
-    }
-    renderComments();
-  }
-
-  async function postComment(name, text) {
-    const payload = JSON.stringify({ name, text, ts: Date.now(), isReply: false });
-    const res = await fetch(`${FIREBASE_URL}/comments.json`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload
-    });
-    if (!res.ok) throw new Error('Post failed');
-    const data = await res.json();
-    allComments.push({ id: data.name, name, text, ts: Date.now(), isReply: false });
-    renderComments();
-  }
-
-  function injectComments() {
-    const footer = document.querySelector('footer');
-    if (!footer || document.getElementById('hydrone-comments')) return;
-
-    const sec = document.createElement('section');
-    sec.id = 'hydrone-comments';
-    sec.innerHTML = `
-      <div class="hc-label">// OPEN CHANNEL</div>
-      <div class="hc-heading">PUBLIC <span>LOG</span></div>
-      <div class="hc-form-wrap">
-        <div class="hc-row">
-          <input class="hc-input" id="hc-name" type="text" placeholder="YOUR NAME" maxlength="50" autocomplete="off"/>
-          <input class="hc-input" id="hc-email" type="email" placeholder="EMAIL (optional, not shown)" maxlength="120" autocomplete="off"/>
-        </div>
-        <textarea class="hc-textarea" id="hc-text" placeholder="Leave a message, question or feedback about HYDRONE..." maxlength="1000"></textarea>
-        <button class="hc-submit" id="hc-submit">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-          TRANSMIT
-        </button>
+        <div class="hc-actions">${actionBtns}</div>
       </div>
-      <div class="hc-list" id="hc-list"><div class="hc-loading">LOADING TRANSMISSIONS</div></div>
-      <div class="hc-load-more" id="hc-load-more" style="display:none">
-        <button class="hc-load-btn" id="hc-load-btn">↑ LOAD MORE</button>
-      </div>`;
-    footer.parentNode.insertBefore(sec, footer);
+      <div class="hc-text" id="hc-text-${c.id}">${esc(c.text).replace(/\n/g,'<br>')}</div>
+    `;
 
-    fetchComments();
-
-    document.getElementById('hc-submit').addEventListener('click', async () => {
-      const nameEl = document.getElementById('hc-name');
-      const textEl = document.getElementById('hc-text');
-      const name = nameEl.value.trim();
-      const text = textEl.value.trim();
-      if (!name) { nameEl.focus(); showToast('Please enter your name.'); return; }
-      if (!text) { textEl.focus(); showToast('Message cannot be empty.'); return; }
-      const btn = document.getElementById('hc-submit');
-      btn.disabled = true; btn.textContent = 'TRANSMITTING...';
-      try {
-        await postComment(name, text);
-        nameEl.value = ''; document.getElementById('hc-email').value = ''; textEl.value = '';
-        showToast('Transmitted ✓');
-        commentsPage = 1;
-      } catch {
-        showToast('Failed to send. Check connection.');
-      }
-      btn.disabled = false;
-      btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg> TRANSMIT';
+    // Reply
+    el.querySelectorAll('.hc-reply-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        replyingTo = { id: btn.dataset.id, authorName: btn.dataset.name };
+        const rt = document.getElementById('hc-replying-to');
+        if (rt) { rt.innerHTML = `↩ Replying to <strong style="color:#ff9c38">${esc(replyingTo.authorName)}</strong> <button id="hc-cancel-reply">✕</button>`; rt.style.display = 'flex'; document.getElementById('hc-cancel-reply').addEventListener('click', cancelReply); }
+        document.getElementById('hc-comment-input').focus();
+      });
     });
 
-    document.getElementById('hc-load-btn').addEventListener('click', () => {
-      commentsPage++; renderComments();
+    // Edit
+    el.querySelectorAll('.hc-edit-btn').forEach(btn => {
+      btn.addEventListener('click', () => startEdit(c, el));
+    });
+
+    // Delete
+    el.querySelectorAll('.hc-del-btn').forEach(btn => {
+      btn.addEventListener('click', () => deleteComment(c.id));
+    });
+
+    return el;
+  }
+
+  function startEdit(c, el) {
+    const textEl = el.querySelector(`#hc-text-${c.id}`);
+    if (!textEl) return;
+    textEl.style.display = 'none';
+
+    const wrap = document.createElement('div');
+    wrap.className = 'hc-edit-wrap';
+    wrap.innerHTML = `
+      <textarea class="hc-edit-textarea">${esc(c.text)}</textarea>
+      <div class="hc-edit-row">
+        <button class="hc-cancel-btn">Cancel</button>
+        <button class="hc-save-btn">Save</button>
+      </div>`;
+    el.appendChild(wrap);
+
+    wrap.querySelector('.hc-cancel-btn').addEventListener('click', () => {
+      wrap.remove(); textEl.style.display = '';
+    });
+    wrap.querySelector('.hc-save-btn').addEventListener('click', async () => {
+      const newText = wrap.querySelector('textarea').value.trim();
+      if (!newText) return;
+      await fetch(`${FIREBASE_URL}${COMMENTS_PATH}/${c.id}.json`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: newText, edited: true })
+      });
+      c.text = newText; c.edited = true;
+      textEl.innerHTML = esc(newText).replace(/\n/g, '<br>');
+      textEl.style.display = '';
+      wrap.remove();
+      showToast('Comment updated ✓');
     });
   }
 
+  async function deleteComment(id) {
+    if (!confirm('Delete this comment?')) return;
+    await fetch(`${FIREBASE_URL}${COMMENTS_PATH}/${id}.json`, { method: 'DELETE' });
+    allComments = allComments.filter(c => c.id !== id && c.parentId !== id);
+    renderComments();
+    showToast('Deleted ✓');
+  }
+
+  function cancelReply() {
+    replyingTo = null;
+    const rt = document.getElementById('hc-replying-to');
+    if (rt) { rt.style.display = 'none'; rt.innerHTML = ''; }
+  }
+
+  function updateBadge(count) {
+    const badge = document.getElementById('hc-count-badge');
+    if (badge) badge.textContent = count > 0 ? count : '0';
+  }
+
+  // ── Fetch ──
+  async function fetchComments() {
+    const list = document.getElementById('hc-list-section');
+    if (!list) return;
+    list.innerHTML = '<div class="hc-loading">Loading transmissions</div>';
+    try {
+      const res  = await fetch(`${FIREBASE_URL}${COMMENTS_PATH}.json`);
+      const data = await res.json();
+      allComments = data ? Object.entries(data).map(([id, v]) => ({ id, ...v })) : [];
+    } catch { allComments = []; }
+    renderComments();
+  }
+
+  // ── Post ──
+  async function postComment() {
+    if (!currentUser) { showToast('Please sign in first', true); return; }
+    const inp  = document.getElementById('hc-comment-input');
+    const text = inp.value.trim();
+    if (!text) { inp.focus(); showToast('Message cannot be empty', true); return; }
+
+    const btn = document.getElementById('hc-submit-btn');
+    btn.disabled = true; btn.textContent = 'TRANSMITTING...';
+
+    const payload = {
+      name:     currentUser.displayName || currentUser.email,
+      uid:      currentUser.uid,
+      photoURL: currentUser.photoURL || '',
+      text,
+      ts:       Date.now(),
+      edited:   false,
+      parentId: replyingTo ? replyingTo.id : null
+    };
+
+    try {
+      const res  = await fetch(`${FIREBASE_URL}${COMMENTS_PATH}.json`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      allComments.push({ id: data.name, ...payload });
+      inp.value = '';
+      cancelReply();
+      renderComments();
+      showToast('Transmitted ✓');
+      // Scroll list to top to see new comment
+      const listSec = document.getElementById('hc-list-section');
+      if (listSec) listSec.scrollTop = 0;
+    } catch { showToast('Failed to send. Try again.', true); }
+
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg> TRANSMIT';
+  }
+
+  // ── Build Panel ──
+  function buildCommentPanel() {
+    if (document.getElementById('hc-overlay')) return;
+
+    // Overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'hc-overlay';
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeComments(); });
+    document.body.appendChild(overlay);
+
+    // Panel
+    const p = document.createElement('div');
+    p.id = 'hc-panel';
+    p.innerHTML = `
+      <div id="hc-panel-header">
+        <div id="hc-panel-title">
+          <h3>// PUBLIC LOG</h3>
+          <p>Open channel · HYDRONE</p>
+        </div>
+        <button id="hc-panel-close">✕</button>
+      </div>
+
+      <div id="hc-auth-section">
+        <button id="hc-login-btn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/></svg>
+          Sign in with Google to comment
+        </button>
+        <div id="hc-user-info" style="display:none">
+          <img id="hc-user-avatar" src="" alt=""/>
+          <span id="hc-user-name"></span>
+          <button id="hc-logout-btn">Sign out</button>
+        </div>
+      </div>
+
+      <div id="hc-input-section" class="hidden">
+        <div id="hc-replying-to" style="display:none"></div>
+        <textarea id="hc-comment-input" placeholder="Write a message or question about HYDRONE..." maxlength="1000"></textarea>
+        <div id="hc-submit-row">
+          <button id="hc-submit-btn">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            TRANSMIT
+          </button>
+        </div>
+      </div>
+
+      <div id="hc-list-section">
+        <div class="hc-loading">Loading transmissions</div>
+      </div>`;
+    document.body.appendChild(p);
+
+    document.getElementById('hc-panel-close').addEventListener('click', closeComments);
+    document.getElementById('hc-login-btn').addEventListener('click', signInGoogle);
+    document.getElementById('hc-logout-btn').addEventListener('click', signOut);
+    document.getElementById('hc-submit-btn').addEventListener('click', postComment);
+    document.getElementById('hc-comment-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) postComment();
+    });
+
+    updateAuthUI();
+    fetchComments();
+  }
+
+  function openComments() {
+    buildCommentPanel();
+    document.getElementById('hc-overlay').classList.add('open');
+    document.getElementById('hc-panel').classList.add('open');
+  }
+
+  function closeComments() {
+    const o = document.getElementById('hc-overlay');
+    const p = document.getElementById('hc-panel');
+    if (o) o.classList.remove('open');
+    if (p) p.classList.remove('open');
+  }
+
+  // ── Trigger Button ──
+  const triggerBtn = document.createElement('button');
+  triggerBtn.id = 'hc-trigger-btn';
+  triggerBtn.innerHTML = `
+    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
+    COMMENTS
+    <span id="hc-count-badge">0</span>`;
+  triggerBtn.addEventListener('click', openComments);
+  document.body.appendChild(triggerBtn);
+
+  // Close on ESC
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeComments();
+  });
+
+  // ── Init Firebase when DOM ready ──
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', injectComments);
+    document.addEventListener('DOMContentLoaded', initFirebase);
   } else {
-    injectComments();
+    initFirebase();
   }
 
 })();
