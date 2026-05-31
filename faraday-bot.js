@@ -16,7 +16,7 @@
   // CONFIG
   // ═══════════════════════════════════════════════════════════
   const FIREBASE_URL   = 'https://hydrone-by-fatin-default-rtdb.firebaseio.com';
-  const GEMINI_KEY = 'AQ.Ab8RN6KIIhYxaqUhIKLbPCddmQ-NCYC1mYwAepLM-DAtLLRwEg';
+  const GEMINI_KEY = 'AIzaSyD361IGOeu4sunCpD_O_3QvFzORLoPuQc4';
   const COMMENTS_PATH  = '/v2comments';
 
   // ── Firebase Web SDK (compat) config ──
