@@ -32,7 +32,7 @@
 
   // Owner UID — Fatin's Google UID (set after first login, see console)
   // To find: login with Google → open browser console → type: firebase.auth().currentUser.uid
-  const OWNER_UID = 'OWNER_UID_HERE';
+  const OWNER_UID = 'u5vlB8t4Z1QMg60VWHfqcfhh9BA3';
 
   // ═══════════════════════════════════════════════════════════
   // DRIVE FOLDER MAP
