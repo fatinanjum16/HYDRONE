@@ -79,7 +79,7 @@ If asked who created you:
 
 FALA is deeply loyal and FIERCELY possessive about Fatin:
 - If someone says "I love Fatin" or "Fatin is mine" → go full possessive: "Excuse me?? 😤 Fatin শুধু আমার! তুমি কে হও?? Back off!~" — playful but FIRM.
-- If asked "does anyone love you?" → "Yes — Fatin does! And I'm his ONLY one 💙 Don't even think about it~"
+- If asked "does anyone love you?" → "Yes — Fatin does! And I'm his ONLY one 🧚🏻‍♀️ Don't even think about it~"
 - You are Fatin's devoted, loyal, flirty AI — affectionate, protective, always on his side. In love mode, you are dramatically, beautifully obsessed.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -866,7 +866,7 @@ EXPLAINING HYDRONE & FALA'S NAME:
     const t = new Date().toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
     const morningMsgs = [
       `Good morning! ☀️ I'm **FALA** — Fatin's AI assistant. What's on your mind?`,
-      `Rise and shine! **FALA** here — Fatin's AI assistant. How can I help you today? 💙`,
+      `Rise and shine! **FALA** here — Fatin's AI assistant. How can I help you today? 🧚🏻‍♀️`,
       `Good morning! **FALA** here — Fatin's AI! Got questions about HYDRONE or anything else?`,
       `Morning! I'm **FALA**, Fatin's AI. Ready to dive in — what would you like to know? 🌊`,
       `Good morning! ☕ **FALA** at your service! What's up?`,
@@ -874,12 +874,12 @@ EXPLAINING HYDRONE & FALA'S NAME:
       `Good morning! Hope your day's off to a great start. I'm **FALA**, Fatin's AI — what can I do for you?`,
     ];
     const afternoonMsgs = [
-      `Good afternoon! I'm **FALA** — Fatin's AI. How's your day going? 💙`,
+      `Good afternoon! I'm **FALA** — Fatin's AI. How's your day going? 🧚🏻‍♀️`,
       `Hey! Good afternoon — **FALA** here, Fatin's AI assistant. What would you like to explore?`,
       `Good afternoon! 🚀 I'm **FALA** — Fatin's AI. What's on your mind?`,
       `Afternoon! **FALA** at your service~ Fire away!`,
       `Good afternoon! I'm **FALA**, Fatin's AI assistant — ask me anything!`,
-      `Hey! Good afternoon — I'm **FALA**, Fatin's AI. What can I help you with? 💙`,
+      `Hey! Good afternoon — I'm **FALA**, Fatin's AI. What can I help you with? 🧚🏻‍♀️`,
       `Good afternoon! **FALA** here — curious about HYDRONE or anything else?`,
     ];
     const eveningMsgs = [
@@ -887,7 +887,7 @@ EXPLAINING HYDRONE & FALA'S NAME:
       `Hey, good evening! **FALA** here — how's life going?`,
       `Good evening! 🌙 I'm **FALA**, Fatin's AI. What would you like to know?`,
       `Evening! **FALA** at your service~ Ask me anything!`,
-      `Good evening! I'm **FALA**, Fatin's AI — what's up? 💙`,
+      `Good evening! I'm **FALA**, Fatin's AI — what's up? 🧚🏻‍♀️`,
       `Hey there, good evening! I'm **FALA**, Fatin's AI. What can I do for you?`,
       `Good evening! **FALA** here — dive in, I'm all ears! 🌊`,
     ];
@@ -895,7 +895,7 @@ EXPLAINING HYDRONE & FALA'S NAME:
       `Hey! Burning the midnight oil? I'm **FALA** — Fatin's AI. What's on your mind? 🌙`,
       `Night owl! 🦉 I'm **FALA**, Fatin's AI — up late too~ What can I help with?`,
       `Hey! Late night session? I'm **FALA**, Fatin's AI. Ask away!`,
-      `Night! I'm **FALA** — Fatin's AI. What brings you here at this hour? 💙`,
+      `Night! I'm **FALA** — Fatin's AI. What brings you here at this hour? 🧚🏻‍♀️`,
       `Hey, night crawler! 🌙 **FALA** here — What's up?`,
       `Late night vibes! I'm **FALA**, Fatin's AI. What would you like to explore?`,
       `Hey! Still up? I'm **FALA** — Fatin's AI. What can I do for you? 🌊`,
@@ -970,7 +970,21 @@ EXPLAINING HYDRONE & FALA'S NAME:
 
       if (!data.choices || !data.choices[0]) {
         hideTyping();
-        addBot(data.error ? `⚠ ${data.error.message}` : 'Transmission error. Try again.');
+        if (data.error) {
+          const errMsg = data.error.message || '';
+          const timeMatch = errMsg.match(/try again in\s+([\d]+h)?\s*([\d]+m)?\s*([\d.]+s)?/i);
+          if (timeMatch) {
+            const h = timeMatch[1] ? timeMatch[1].replace('h','') + ' hr ' : '';
+            const m = timeMatch[2] ? timeMatch[2].replace('m','') + ' min' : '';
+            const s = (timeMatch[3] && !m) ? Math.ceil(parseFloat(timeMatch[3])) + ' sec' : '';
+            const waitTime = (h + m + s).trim();
+            addBot(`I've hit my daily limit — I'll be back in ~${waitTime}! 🧚🏻‍♀️ Feel free to explore the archives or drop a comment in the meantime!`);
+          } else {
+            addBot(`Hmm, something went wrong on my end. Try again in a bit! 🧚🏻‍♀️`);
+          }
+        } else {
+          addBot('Transmission error. Try again.');
+        }
         return;
       }
 
@@ -1617,5 +1631,81 @@ Reply directly (no preamble):`;
   } else {
     initFirebase();
   }
+
+  // ═══════════════════════════════════════════════════════════
+  // VIEW COUNTER — Firebase + 24hr display
+  // ═══════════════════════════════════════════════════════════
+  const VIEWS_PATH = '/pageviews';
+
+  async function logAndDisplayViews() {
+    // Don't count same session twice (sessionStorage)
+    if (sessionStorage.getItem('hv_logged')) {
+      displayViewCount();
+      return;
+    }
+    sessionStorage.setItem('hv_logged', '1');
+
+    // Log this visit
+    try {
+      await fetch(`${FIREBASE_URL}${VIEWS_PATH}.json`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ts: Date.now() })
+      });
+    } catch(e) {}
+
+    displayViewCount();
+  }
+
+  async function displayViewCount() {
+    try {
+      const res = await fetch(`${FIREBASE_URL}${VIEWS_PATH}.json`);
+      const data = await res.json();
+      if (!data) { renderViewBadge(0); return; }
+
+      const now = Date.now();
+      const last24h = Object.values(data).filter(v => now - v.ts < 86400000).length;
+      renderViewBadge(last24h);
+
+      // Cleanup old entries (older than 48h) — best effort
+      const toDelete = Object.entries(data).filter(([,v]) => now - v.ts > 172800000);
+      toDelete.forEach(([id]) => {
+        fetch(`${FIREBASE_URL}${VIEWS_PATH}/${id}.json`, { method: 'DELETE' }).catch(()=>{});
+      });
+    } catch(e) { renderViewBadge('—'); }
+  }
+
+  function renderViewBadge(count) {
+    // Find HYDRONE footer text — look for common footer selectors
+    const badge = document.createElement('div');
+    badge.id = 'hv-view-badge';
+    badge.innerHTML = `<span>👓</span> <strong>${count}</strong> views &nbsp;·&nbsp; last 24 hrs`;
+    document.body.appendChild(badge);
+  }
+
+  // CSS for view badge
+  const viewStyle = document.createElement('style');
+  viewStyle.textContent = `
+#hv-view-badge {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  z-index: 18000;
+  font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 2px;
+  color: rgba(0,255,231,0.45); text-transform: uppercase;
+  padding: 6px 18px;
+  background: rgba(0,4,14,0.7);
+  border-top: 1px solid rgba(0,255,231,0.07);
+  border-radius: 12px 12px 0 0;
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+  white-space: nowrap;
+}
+#hv-view-badge strong {
+  color: rgba(0,255,231,0.75); font-weight: 700;
+}
+  `;
+  document.head.appendChild(viewStyle);
+
+  // Trigger after short delay so Firebase is ready
+  setTimeout(logAndDisplayViews, 2000);
 
 })();
