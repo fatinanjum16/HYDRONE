@@ -375,6 +375,42 @@
 
     body { padding-top: 48px !important; }
 
+    /* Back button — always visible, never hidden under navbar */
+    .back-btn {
+      z-index: 100;
+      display: inline-flex !important;
+      align-items: center !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      margin-top: 62px !important;
+      padding: 8px 14px !important;
+      font-size: 11px !important;
+      height: 38px !important;
+      line-height: 1 !important;
+      box-sizing: border-box !important;
+      vertical-align: middle !important;
+    }
+    /* Ensure navigate row aligns all buttons at same height */
+    .nav-strip, .back-row, .navigate-row,
+    div:has(> .back-btn) {
+      display: flex !important;
+      align-items: center !important;
+      gap: 12px !important;
+      flex-wrap: wrap !important;
+    }
+    /* All sibling nav buttons same height as back-btn */
+    .back-btn ~ a, .back-btn ~ button,
+    a:has(~ .back-btn), button:has(~ .back-btn) {
+      height: 38px !important;
+      box-sizing: border-box !important;
+      display: inline-flex !important;
+      align-items: center !important;
+    }
+    /* Part header top spacing — prevent sliding under navbar */
+    .part-header {
+      scroll-margin-top: 56px;
+    }
+
     @media (max-width: 600px) {
       #hn-bar { padding: 0 14px; }
       #hn-logo { font-size: 12px; letter-spacing: 3px; }
