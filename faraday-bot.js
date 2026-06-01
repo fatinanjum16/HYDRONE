@@ -16,7 +16,8 @@
   // CONFIG
   // ═══════════════════════════════════════════════════════════
   const FIREBASE_URL   = 'https://hydrone-by-fatin-default-rtdb.firebaseio.com';
-  const GROQ_KEY = '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';
+  const GEMINI_KEY = 'AQ.Ab8RN6K4qje1vvFQ5z4SK0oTw0kLyc5lqem02z9Dd5ssp2vdJQ';
+  const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
   const COMMENTS_PATH  = '/v2comments';
 
   // ── Firebase Web SDK (compat) config ──
@@ -935,113 +936,40 @@ EXPLAINING HYDRONE & FALA'S NAME:
     history.push({ role: 'user', parts: [{ text: msg }] });
     showTyping();
     try {
-      const messages = [
-        { role: 'system', content: FARADAY_SYSTEM },
-        ...history.map(h => ({
-          role: h.role === 'model' ? 'assistant' : 'user',
-          content: h.parts[0].text
-        }))
-      ];
+      const contents = history.map(h => ({
+        role: h.role === 'model' ? 'model' : 'user',
+        parts: [{ text: h.parts[0].text }]
+      }));
 
-      // Web search tool definition
-      const tools = [
-        {
-          type: 'function',
-          function: {
-            name: 'web_search',
-            description: 'Search the web for current information, recent events, latest research, or any up-to-date data. Use this when you need fresh information beyond your training data.',
-            parameters: {
-              type: 'object',
-              properties: {
-                query: { type: 'string', description: 'The search query to look up' }
-              },
-              required: ['query']
-            }
-          }
-        }
-      ];
+      const body = {
+        systemInstruction: { parts: [{ text: FARADAY_SYSTEM }] },
+        contents,
+        generationConfig: { maxOutputTokens: 1024 }
+      };
 
-      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      const res = await fetch(GEMINI_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` },
-        body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages, max_tokens: 1024, tools, tool_choice: 'auto' })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
       });
       const data = await res.json();
 
-      if (!data.choices || !data.choices[0]) {
-        hideTyping();
-        if (data.error) {
-          const errMsg = data.error.message || '';
-          const timeMatch = errMsg.match(/try again in\s+([\d]+h)?\s*([\d]+m)?\s*([\d.]+s)?/i);
-          if (timeMatch) {
-            const h = timeMatch[1] ? timeMatch[1].replace('h','') + ' hr ' : '';
-            const m = timeMatch[2] ? timeMatch[2].replace('m','') + ' min' : '';
-            const s = (timeMatch[3] && !m) ? Math.ceil(parseFloat(timeMatch[3])) + ' sec' : '';
-            const waitTime = (h + m + s).trim();
-            addBot(`I've hit my daily limit — I'll be back in ~${waitTime}! 🧚🏻‍♀️ Feel free to explore the archives or drop a comment in the meantime!`);
-          } else {
-            addBot(`Hmm, something went wrong on my end. Try again in a bit! 🧚🏻‍♀️`);
-          }
-        } else {
-          addBot('Transmission error. Try again.');
-        }
+      hideTyping();
+
+      if (!data.candidates || !data.candidates[0]) {
+        addBot('Hmm, something went wrong on my end. Try again in a bit!');
         return;
       }
 
-      const choice = data.choices[0];
+      const reply = data.candidates[0].content.parts.map(p => p.text || '').join('');
+      history.push({ role: 'model', parts: [{ text: reply }] });
+      addBot(reply);
 
-      // Handle tool call (web search)
-      if (choice.finish_reason === 'tool_calls' && choice.message.tool_calls) {
-        const toolCall = choice.message.tool_calls[0];
-        const query = JSON.parse(toolCall.function.arguments).query;
-
-        // Perform DuckDuckGo instant answer search (no API key needed)
-        let searchResult = '';
-        try {
-          const ddgRes = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`);
-          const ddgData = await ddgRes.json();
-          searchResult = ddgData.AbstractText || ddgData.Answer || '';
-          if (!searchResult && ddgData.RelatedTopics && ddgData.RelatedTopics[0]) {
-            searchResult = ddgData.RelatedTopics[0].Text || '';
-          }
-          if (!searchResult) searchResult = `No instant answer found for: "${query}". Answer based on your knowledge, and mention if the info might be outdated.`;
-        } catch(e) {
-          searchResult = `Search unavailable. Answer based on your knowledge.`;
-        }
-
-        // Send follow-up with search result
-        const followUpMessages = [
-          ...messages,
-          { role: 'assistant', content: null, tool_calls: choice.message.tool_calls },
-          { role: 'tool', tool_call_id: toolCall.id, content: searchResult }
-        ];
-        const res2 = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` },
-          body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: followUpMessages, max_tokens: 1024 })
-        });
-        const data2 = await res2.json();
-        hideTyping();
-        if (data2.choices && data2.choices[0]) {
-          const reply = data2.choices[0].message.content;
-          history.push({ role: 'model', parts: [{ text: reply }] });
-          addBot(reply);
-        } else {
-          addBot('Transmission error. Please try again.');
-        }
-      } else {
-        // Normal response
-        hideTyping();
-        const reply = choice.message.content;
-        history.push({ role: 'model', parts: [{ text: reply }] });
-        addBot(reply);
-      }
     } catch(err) {
       hideTyping();
       addBot('Connection lost. Check your network and try again.');
     }
   }
-
   function sendMsg() {
     const inp = document.getElementById('frd-input');
     const txt = inp.value.trim(); if (!txt) return;
@@ -1399,74 +1327,65 @@ EXPLAINING HYDRONE & FALA'S NAME:
   const THIRTY_MIN = 30 * 60 * 1000;
 
   // FALA custom avatar as SVG data URL
-  const FALA_AVATAR_SVG = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><rect width='40' height='40' rx='8' fill='%23000e08' stroke='%2300ffe7' stroke-width='1.2'/><line x1='10' y1='10' x2='30' y2='30' stroke='%2300ffe7' stroke-width='2' stroke-linecap='round'/><line x1='30' y1='10' x2='10' y2='30' stroke='%2300ffe7' stroke-width='2' stroke-linecap='round'/><circle cx='10' cy='10' r='3' stroke='%2300ffe7' stroke-width='1.2' fill='none'/><circle cx='30' cy='10' r='3' stroke='%2300ffe7' stroke-width='1.2' fill='none'/><circle cx='10' cy='30' r='3' stroke='%2300ffe7' stroke-width='1.2' fill='none'/><circle cx='30' cy='30' r='3' stroke='%2300ffe7' stroke-width='1.2' fill='none'/><rect x='15.5' y='15.5' width='9' height='9' rx='2' fill='%23001008' stroke='%2300ff88' stroke-width='1'/><text x='20' y='23' text-anchor='middle' font-family='monospace' font-size='8' font-weight='900' fill='%2300ff88'>?</text></svg>`;
+  const FALA_AVATAR_SVG = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><defs><radialGradient id='bg' cx='50%25' cy='40%25' r='60%25'><stop offset='0%25' stop-color='%23200010'/><stop offset='100%25' stop-color='%230a0008'/></radialGradient><filter id='glow'><feGaussianBlur stdDeviation='1.2' result='blur'/><feMerge><feMergeNode in='blur'/><feMergeNode in='SourceGraphic'/></feMerge></filter></defs><rect width='40' height='40' rx='9' fill='url(%23bg)' stroke='%23ff3fa4' stroke-width='1'/><text x='20' y='26' text-anchor='middle' font-family='Pacifico%2C cursive' font-size='15' fill='%23ff6ec7' filter='url(%23glow)' style='paint-order:stroke' stroke='%23ff1a8c' stroke-width='0.5'>Fala</text></svg>`;
 
   async function falaAutoReply() {
     if (!allComments.length) return;
     const now = Date.now();
 
-    // Check ALL comments and replies (except FALA's own)
+    // All comments/replies NOT from FALA
     const candidates = allComments.filter(c => c.uid !== FALA_UID);
 
-    for (const comment of candidates) {
-      // Must be at least 30 minutes old
-      if (now - comment.ts < THIRTY_MIN) continue;
+    // Find all 30+ min old with NO reply from anyone
+    const unanswered = candidates.filter(comment => {
+      if (now - comment.ts < THIRTY_MIN) return false;
+      const hasAnyReply = allComments.some(c => c.parentId === comment.id);
+      return !hasAnyReply;
+    });
 
-      // Check if this comment already has ANY reply (from anyone including FALA)
-      const hasReply = allComments.some(c => c.parentId === comment.id);
-      if (hasReply) continue;
+    if (!unanswered.length) return;
 
-      // No reply in 30 min — FALA replies!
-      // Pass parent context if this is itself a reply
+    for (let i = 0; i < unanswered.length; i++) {
+      const comment = unanswered[i];
       const parentComment = comment.parentId
         ? allComments.find(c => c.id === comment.parentId)
         : null;
-
-      await falaGenerateAndPost(comment, parentComment);
-      break; // one per visit
+      const grandparentComment = parentComment && parentComment.parentId
+        ? allComments.find(c => c.id === parentComment.parentId)
+        : null;
+      if (i > 0) await new Promise(r => setTimeout(r, 800));
+      await falaGenerateAndPost(comment, parentComment, grandparentComment);
     }
   }
 
-  async function falaGenerateAndPost(comment, parentComment = null) {
+  async function falaGenerateAndPost(comment, parentComment = null, grandparentComment = null) {
     try {
       let contextLine = '';
-      if (parentComment) {
-        contextLine = `This is a reply by "${comment.name}" to an earlier comment by "${parentComment.name}" who said: "${parentComment.text}"\n\n`;
+      if (grandparentComment && parentComment) {
+        contextLine = `CONVERSATION CONTEXT:\n- "${grandparentComment.name}" originally said: "${grandparentComment.text}"\n- "${parentComment.name}" replied: "${parentComment.text}"\n- Now "${comment.name}" replied to that.\n\nReply to "${comment.name}" with awareness of the full thread.\n\n`;
+      } else if (parentComment) {
+        contextLine = `CONTEXT: "${parentComment.name}" originally said: "${parentComment.text}"\nNow "${comment.name}" replied to that.\n\n`;
       }
 
-      const prompt = `${contextLine}Someone left a comment on the HYDRONE project website. Reply to them as FALA — warm, short, human. 2-3 sentences max. Whether it's a question, general praise, curiosity, or a reply to someone else — respond naturally. Don't be robotic. Don't over-explain. Sound like a real person who genuinely cares.
+      const prompt = `${contextLine}Reply as FALA in the HYDRONE project comments. Warm, short, human — 2-3 sentences max. Natural, not robotic.
 
-Comment from "${comment.name}": "${comment.text}"
+${contextLine ? 'Latest message' : 'Comment'} from "${comment.name}": "${comment.text}"
 
 Reply directly (no preamble):`;
 
-      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      const res = await fetch(GEMINI_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          messages: [
-            { role: 'system', content: FARADAY_SYSTEM },
-            { role: 'user', content: prompt }
-          ],
-          max_tokens: 200
+          systemInstruction: { parts: [{ text: FARADAY_SYSTEM }] },
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 200 }
         })
       });
       const data = await res.json();
-      if (!data.choices || !data.choices[0]) return;
+      if (!data.candidates || !data.candidates[0]) return;
 
-      const replyText = data.choices[0].message.content.trim();
-
-      const payload = {
-        name: FALA_NAME,
-        uid: FALA_UID,
-        photoURL: FALA_AVATAR_SVG,
-        text: replyText,
-        ts: Date.now(),
-        edited: false,
-        parentId: comment.id,
-        autoReply: true
-      };
+      const replyText = data.candidates[0].content.parts.map(p => p.text || '').join('').trim();
 
       const postRes = await fetch(`${FIREBASE_URL}${COMMENTS_PATH}.json`, {
         method: 'POST',
