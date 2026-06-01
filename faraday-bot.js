@@ -606,6 +606,23 @@ EXPLAINING HYDRONE & FALA'S NAME:
 .hc-like-btn.liked { color: #00ffe7; background: rgba(0,255,231,0.1); }
 .hc-like-btn .hc-like-count { font-size: 10px; }
 
+#hc-sort-bar {
+  display: flex; gap: 8px; margin-bottom: 14px; padding-bottom: 12px;
+  border-bottom: 1px solid rgba(0,255,231,0.06);
+}
+.hc-sort-btn {
+  background: transparent; border: 1px solid rgba(0,255,231,0.15);
+  border-radius: 20px; padding: 5px 14px;
+  font-family: 'Orbitron', sans-serif; font-size: 8px; letter-spacing: 2px;
+  color: rgba(0,255,231,0.4); cursor: pointer; text-transform: uppercase;
+  transition: all 0.2s;
+}
+.hc-sort-btn:hover { border-color: rgba(0,255,231,0.4); color: rgba(0,255,231,0.7); }
+.hc-sort-btn.active {
+  background: rgba(0,255,231,0.1); border-color: rgba(0,255,231,0.5);
+  color: #00ffe7; box-shadow: 0 0 10px rgba(0,255,231,0.15);
+}
+
 /* Comments list */
 #hc-list-section {
   flex: 1; overflow-y: auto; padding: 16px 22px;
@@ -1131,6 +1148,8 @@ EXPLAINING HYDRONE & FALA'S NAME:
     fbAuth.signOut().then(() => showToast('Signed out'));
   }
 
+  let currentSort = 'recent'; // 'recent' or 'top'
+
   // ── Render ──
   function renderComments() {
     const list = document.getElementById('hc-list-section');
@@ -1142,10 +1161,26 @@ EXPLAINING HYDRONE & FALA'S NAME:
       return;
     }
 
-    // Build nested tree
-    const topLevel = allComments.filter(c => !c.parentId).sort((a,b) => b.ts - a.ts);
+    // Sort toggle bar
+    const sortBar = `
+      <div id="hc-sort-bar">
+        <button class="hc-sort-btn${currentSort === 'recent' ? ' active' : ''}" data-sort="recent">⏱ RECENT</button>
+        <button class="hc-sort-btn${currentSort === 'top' ? ' active' : ''}" data-sort="top">🔥 TOP</button>
+      </div>`;
 
-    list.innerHTML = '';
+    // Build nested tree
+    let topLevel = allComments.filter(c => !c.parentId);
+    if (currentSort === 'recent') {
+      topLevel.sort((a, b) => b.ts - a.ts);
+    } else {
+      topLevel.sort((a, b) => {
+        const likesA = Object.keys(b.likes || {}).length;
+        const likesB = Object.keys(a.likes || {}).length;
+        return likesA - likesB;
+      });
+    }
+
+    list.innerHTML = sortBar;
     let total = 0;
 
     topLevel.forEach(c => {
@@ -1174,6 +1209,14 @@ EXPLAINING HYDRONE & FALA'S NAME:
     });
 
     updateBadge(total);
+
+    // Sort button listeners
+    list.querySelectorAll('.hc-sort-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentSort = btn.dataset.sort;
+        renderComments();
+      });
+    });
   }
 
   function buildCommentEl(c, depth) {
@@ -1348,32 +1391,40 @@ EXPLAINING HYDRONE & FALA'S NAME:
     if (!allComments.length) return;
     const now = Date.now();
 
-    // Get top-level comments only (no parentId)
-    const topLevel = allComments.filter(c => !c.parentId && c.uid !== FALA_UID);
+    // Check ALL comments and replies (except FALA's own)
+    const candidates = allComments.filter(c => c.uid !== FALA_UID);
 
-    for (const comment of topLevel) {
-      // Skip if comment is less than 30 minutes old
+    for (const comment of candidates) {
+      // Must be at least 30 minutes old
       if (now - comment.ts < THIRTY_MIN) continue;
 
-      // Check if this comment already has any reply
+      // Check if this comment already has ANY reply (from anyone including FALA)
       const hasReply = allComments.some(c => c.parentId === comment.id);
       if (hasReply) continue;
 
-      // No reply in 1 hour — FALA will reply!
-      await falaGenerateAndPost(comment);
+      // No reply in 30 min — FALA replies!
+      // Pass parent context if this is itself a reply
+      const parentComment = comment.parentId
+        ? allComments.find(c => c.id === comment.parentId)
+        : null;
 
-      // Only reply to one comment per visit to avoid spam
-      break;
+      await falaGenerateAndPost(comment, parentComment);
+      break; // one per visit
     }
   }
 
-  async function falaGenerateAndPost(comment) {
+  async function falaGenerateAndPost(comment, parentComment = null) {
     try {
-      const prompt = `Someone left a comment on the HYDRONE project website. Reply to them warmly and helpfully as FALA. Keep it short — 2-3 sentences max. Sound human, curious, friendly. If it's a question, give a brief answer or say you'd love to discuss more. If it's praise, appreciate it genuinely without being over the top. If it's unclear, ask a friendly follow-up.
+      let contextLine = '';
+      if (parentComment) {
+        contextLine = `This is a reply by "${comment.name}" to an earlier comment by "${parentComment.name}" who said: "${parentComment.text}"\n\n`;
+      }
+
+      const prompt = `${contextLine}Someone left a comment on the HYDRONE project website. Reply to them as FALA — warm, short, human. 2-3 sentences max. Whether it's a question, general praise, curiosity, or a reply to someone else — respond naturally. Don't be robotic. Don't over-explain. Sound like a real person who genuinely cares.
 
 Comment from "${comment.name}": "${comment.text}"
 
-Reply as FALA now (no preamble, just the reply directly):`;
+Reply directly (no preamble):`;
 
       const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
@@ -1392,7 +1443,6 @@ Reply as FALA now (no preamble, just the reply directly):`;
 
       const replyText = data.choices[0].message.content.trim();
 
-      // Post as FALA bot to Firebase (no auth token — using open write)
       const payload = {
         name: FALA_NAME,
         uid: FALA_UID,
@@ -1415,7 +1465,7 @@ Reply as FALA now (no preamble, just the reply directly):`;
         renderComments();
       }
     } catch(e) {
-      // Silent fail — auto-reply is best-effort
+      // Silent fail
     }
   }
 
