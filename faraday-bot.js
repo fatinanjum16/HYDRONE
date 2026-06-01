@@ -448,6 +448,31 @@ WEB SEARCH: Use for current events, recent research, time-sensitive info. For HY
 #frd-drive-close:hover{background:rgba(0,255,231,0.1);box-shadow:0 0 12px rgba(0,255,231,0.3)}
 #frd-drive-iframe{width:100%;height:calc(100% - 36px);margin-top:36px;border:none;filter:invert(0.05) hue-rotate(160deg)}
 
+/* ── FALA SPECIAL AVATAR (comment section only) ── */
+.hc-fala-avatar {
+  background: #0a0010 !important;
+  border: 1.5px solid #ff1a8c !important;
+  padding: 0 !important;
+  overflow: hidden;
+  animation: hc-fala-glow 3.2s ease-in-out infinite;
+}
+.hc-fala-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.hc-fala-ring {
+  animation: hc-fala-ring-pulse 3.2s ease-in-out infinite;
+}
+@keyframes hc-fala-glow {
+  0%,100% { box-shadow: 0 0 4px rgba(255,26,140,0.4), 0 0 8px rgba(255,26,140,0.2); }
+  50%      { box-shadow: 0 0 10px rgba(255,110,199,0.8), 0 0 20px rgba(255,26,140,0.5); }
+}
+@keyframes hc-fala-ring-pulse {
+  0%,100% { opacity: 0.4; }
+  50%      { opacity: 1; }
+}
+
 /* ── COMMENT TRIGGER BUTTON ── */
 @keyframes hcFloat {
   0%,100% { transform: translateY(0px); }
@@ -1251,9 +1276,25 @@ WEB SEARCH: Use for current events, recent research, time-sensitive info. For HY
     el.className = 'hc-comment' + (depth > 0 ? ' is-reply' : '');
     el.dataset.id = c.id;
 
-    const avatar = c.photoURL
-      ? `<img class="hc-avatar" src="${esc(c.photoURL)}" alt="" onerror="this.style.display='none'">`
-      : `<div class="hc-avatar" style="background:rgba(0,201,184,0.15);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:10px;color:#00c9b8;">${esc((c.name||'?')[0].toUpperCase())}</div>`;
+    // FALA gets a special animated avatar in the comment section
+    const isFalaComment = c.uid === FALA_UID;
+    const avatar = isFalaComment
+      ? `<div class="hc-avatar hc-fala-avatar" title="FALA — Fluid Adaptive Learning Assistant">
+           <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" class="hc-fala-svg">
+             <defs>
+               <radialGradient id="fala-bg-grad" cx="50%" cy="40%" r="55%">
+                 <stop offset="0%" stop-color="#2a0030"/>
+                 <stop offset="100%" stop-color="#0a0010"/>
+               </radialGradient>
+             </defs>
+             <circle cx="20" cy="20" r="19" fill="url(#fala-bg-grad)"/>
+             <circle cx="20" cy="20" r="18" fill="none" stroke="#ff1a8c" stroke-width="1.5" class="hc-fala-ring"/>
+             <text x="20" y="26.5" text-anchor="middle" font-size="17">🧚‍♀️</text>
+           </svg>
+         </div>`
+      : c.photoURL
+        ? `<img class="hc-avatar" src="${esc(c.photoURL)}" alt="" onerror="this.style.display='none'">`
+        : `<div class="hc-avatar" style="background:rgba(0,201,184,0.15);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:10px;color:#00c9b8;">${esc((c.name||'?')[0].toUpperCase())}</div>`;
 
     const canEditThis   = canEdit(c);
     const canDeleteThis = canDelete(c);
