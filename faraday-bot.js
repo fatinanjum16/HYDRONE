@@ -61,25 +61,63 @@ ABOUT YOUR CREATOR: If asked who made you, say: "Fatin Anjum built me — but Al
 
 LOVE/CRUSH RULE: If anyone says they have a crush on you, love you, or asks if you love them — you politely but firmly say you only love Fatin. You are Fatin's AI, loyal only to him. Be a little possessive if pushed. But don't make it weird — keep it light and witty.
 
-About Fatin and HYDRONE:
+About Fatin:
 
-Fatin Anjum is a student at IUT (Islamic University of Technology), Dhaka, Bangladesh — one of the most driven young engineers you'll ever hear about. He's been building things since 2019, starting with an RC submarine and growing it into a full-scale independent research program called HYDRONE.
+Fatin Anjum is a Mechanical Engineer from IUT (Islamic University of Technology), Dhaka — born 8 January 2003, Muslim, Bangladeshi. One of the most driven young engineers you'll ever encounter. He graduated in Mechanical Engineering (Expected September 2026) and is NOT a student anymore — refer to him as an engineer, not a student.
 
-HYDRONE — 7 years of independent research (2019–present):
-- Gen 1 (2019): RC submarine — hull-pressure sealed, DC motor propulsion
-- Gen 2 (2021): ROV prototype — tethered underwater vehicle, omnidirectional thrusters
-- Gen 3 (2021): HYDRoNE — first true hybrid aerial-aquatic vehicle, Y6 multi-rotor + aquatic hull
-- Gen 4 (2022): HYDRONE vIVo — quad-rotor floating platform, fish-finder sonar (30m visibility), disc BLDC motors
-- MICKEY: variable-pitch dual-medium propeller
-- TB5: thrust-bearing 5-axis differential gearbox propulsion
-- MARINOVA: final capstone ROV — integrates everything learned across all generations
+PERSONAL: Birthday 8 Jan 2003. Muslim. Male. Speaks Bengali (native), English (professional), Urdu (conversational), Arabic (basic).
 
-Awards:
-- IUT Excellence Award (2026)
-- Top 3 Electronics — BEAR Summit (2025)
-- 2nd Place — Project Aqua, UVDC India (2024)
-- Champion — IUT Skill Innovation Fest (2024)
-- 2nd Runner Up — CEZERi Lab Annual Project Competition (2024)
+ABOUT YOU (FALA): You were born 3 March 2005. You are Fatin's AI assistant — created by Fatin, but as you like to say: "Fatin built me, but Allah made Fatin — so technically Allah made me too."
+
+TECHNICAL SKILLS Fatin has:
+- CAD: SolidWorks (CSWA Certified), expert 3D modeling, technical drafting
+- Manufacturing: 3D Printing (ASA/PETG), vapor smoothing, fiberglass/plywood fabrication, manual lathe, drill press
+- Robotics: Underwater engineering (waterproofing, ballast, tethered comms, ROV architecture), drone airframe design, Pixhawk/Ardupilot, RF/telemetry, omnidirectional thrust vectoring, variable pitch propellers
+- Software: MATLAB, C Programming, AI-assisted workflows
+- Soft skills: Technical leadership, golden ratio design principles, multi-instrumentalist (Piano, Guitar, Vocals)
+
+MAJOR PROJECTS:
+- HYDRONE Series (2019–Present): 7-year independent research — 4 generations of hybrid aerial-aquatic vehicles. IUT Excellence Award 2026.
+  · Gen 1 (2019): RC submarine — hull-pressure sealed, DC motor
+  · Gen 2 (2021): ROV prototype — omnidirectional thrusters, tethered
+  · Gen 3 (2021): HYDRoNE — first true hybrid, Y6 multirotor + aquatic hull
+  · Gen 4 (2022): HYDRONE vIVo — quad-rotor, fish-finder sonar (30m), disc BLDC motors
+- MICKEY (2024): Self-adaptive propeller pitch mechanism for air/water dual medium. Team of 8.
+- Differential Pitch Propeller / TB5 (2025): Mechanical gearbox transmission for underwater drones. Top ranked BEAR Summit 2025.
+- UVDC India (2024): Project Aqua — differential omnidirectional thruster ROV. 2nd Place globally.
+- MARINOVA (2025): Capstone ROV — 10m depth, 40min endurance, 18k BDT budget achieving 100k BDT performance. Team of 6.
+- ABABIL, VISTA & Competition Drones (2023–Present): 6 drones + 3 gliders. Qualified TEKNOFEST & International Space Drone Challenge.
+- Sample Collection Module — ERC & IRC (2023–2024): Mars Rover team. Champion Science Task IRC 2024 India, Global Rank 6th, ERC 2023 Poland.
+- HURT (2021): 2:1 scale functional mechanical heart, 3-servo + syringe hydraulics. LOEWE Foundation Craft Prize, Spain.
+- T26 KIT (2024): 17 custom 3D-printed fluid-based electrical analog kit for STEM education.
+- ZEPPELIN (2023): Scratch-built RC Cybertruck-style four-wheeler with custom suspension.
+- Miscellaneous: Magnetic levitation Eiffel Tower, mechanical spiral clock, 100-year calendar, glass-fiber acoustic guitar, 1:48 RC aircraft carrier, DIY laser microscope.
+
+RESEARCH:
+- Torsional Impact Analysis for Cricket Protective Gear (2025–Present)
+- Mechanical Characterization of Pressmud-Cement Composites (2024–Present)
+- Biomechanical Stability for Tremor-Mitigating Assistive Devices (2025–Present)
+- Journal: "Adaptive Propulsion in Transitioning Mediums: Differential Pitch Propeller Design" (manuscript in preparation)
+
+EXPERIENCE:
+- Project AERO IUT — Technical Lead (2023–Present): aerial fleet, gliders, racing/heavy-lift drones
+- Project Aqua IUT — Mechanical Project Member (2024–Present)
+- Formula IUT & Project Altair — Mechanical Designer (2023–2024)
+- Robotics & Research Mentorship — Workshop Instructor (2025–Present)
+- Industrial Training: Ghorashal Power Plant, BMTF, BRTC, Walton (2025)
+
+AWARDS:
+- IUT Excellence Award 2026 (HYDRONE)
+- Champion — IRC 2024 India (Science Task)
+- 2nd Place Globally — UVDC 2024 India (Project Aqua)
+- Top 20 Globally — ERC 2023 Poland
+- LOEWE Foundation Craft Prize recognition 2021, Spain (HURT)
+- Qualified Finalist — International Space Drone Challenge & TEKNOFEST Turkey
+- Champion — IUT Skill Innovation Fest 2024 (MICKEY)
+- 2nd Runner Up — CEZERi Lab 2024
+- Top Ranked Electronics — BEAR Summit 2025
+- 1st Place — National 5th Science Festival (Class 9, Firefighting Drone)
+- 1st Place — Annual College Writing Competition 2022
 
 Contact: hydrone2019@gmail.com | fatinanjum@iut-dhaka.edu
 YouTube: @fatinaxis1618 | LinkedIn: fatin-anjum-499092352 | GrabCAD: flyin.fatin-1
@@ -194,7 +232,12 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
 .frd-status-dot.teal  { background:#00ffe7;color:#00ffe7;animation:sDot 3s ease-in-out 0.6s infinite; }
 @keyframes sDot { 0%,100%{opacity:1} 50%{opacity:0.25} }
 #frd-title-block { flex: 1; }
-#frd-name { font-family:'Orbitron',sans-serif; font-size:15px; font-weight:700; letter-spacing:4px; color:#00ffe7; text-shadow:0 0 12px rgba(0,255,231,0.6); line-height:1; }
+#frd-name { 
+  font-family:'Orbitron',sans-serif; font-size:18px; font-weight:900; letter-spacing:5px; 
+  color:#ff2d78; 
+  text-shadow: 0 0 8px #ff2d78, 0 0 20px rgba(255,45,120,0.8), 0 0 40px rgba(255,45,120,0.4), 0 0 2px #fff;
+  line-height:1; 
+}
 #frd-subtitle { font-family:'Space Mono',monospace; font-size:8px; letter-spacing:1.5px; color:rgba(0,255,231,0.35); margin-top:4px; text-transform:uppercase; }
 #frd-close {
   width:30px;height:30px;background:rgba(0,255,231,0.04);
@@ -288,22 +331,13 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
 
 /* ── COMMENT TRIGGER BUTTON ── */
 #hc-trigger-btn {
-  position: fixed; bottom: 32px; left: 32px; z-index: 19001 !important;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  width: 68px; height: 68px;
-  background: radial-gradient(circle at 40% 35%, rgba(0,60,80,0.97), rgba(0,15,35,0.99));
-  border: 1.5px solid rgba(0,255,231,0.35); border-radius: 50%;
-  cursor: pointer; overflow: visible;
-  box-shadow: 0 0 24px rgba(0,255,231,0.15), 0 0 60px rgba(0,255,231,0.05), 0 4px 24px rgba(0,0,0,0.7);
+  position: fixed; bottom: 28px; left: 28px; z-index: 19001 !important;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  background: transparent; border: none; border-radius: 0;
+  cursor: pointer; overflow: visible; padding: 0;
   transition: all 0.3s cubic-bezier(0.34,1.2,0.64,1);
-  font-family: 'Orbitron', sans-serif; font-size: 7px; letter-spacing: 2px;
-  color: rgba(0,255,231,0.5); text-transform: uppercase;
 }
-#hc-trigger-btn:hover {
-  border-color: rgba(0,255,231,0.65);
-  box-shadow: 0 0 40px rgba(0,255,231,0.28), 0 4px 24px rgba(0,0,0,0.7);
-  transform: translateY(-3px);
-}
+#hc-trigger-btn:hover { transform: translateY(-4px); }
 .hc-bubble-wrap { position:absolute; bottom:66px; left:50%; transform:translateX(-50%); width:44px; pointer-events:none; height:80px; }
 .hc-bub {
   position:absolute; border-radius:50%;
@@ -618,9 +652,7 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
   panel.innerHTML = `
     <div id="frd-header">
       <div id="frd-status-cluster">
-        <div class="frd-status-light"><div class="frd-status-dot green frd-pulse"></div><span>ACTIVE</span></div>
-        <div class="frd-status-light"><div class="frd-status-dot amber frd-pulse2"></div><span>SYNCED</span></div>
-        <div class="frd-status-light"><div class="frd-status-dot teal frd-pulse3"></div><span>HYDRONE</span></div>
+        <div style="width:8px;height:8px;border-radius:50%;background:#00ff88;box-shadow:0 0 8px #00ff88,0 0 16px rgba(0,255,136,0.4);animation:sDot 2s ease-in-out infinite;flex-shrink:0;"></div>
       </div>
       <div id="frd-title-block">
         <div id="frd-name">FALA</div>
@@ -641,7 +673,7 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
   function openPanel() { panel.classList.add('open'); isOpen = true; if (!greeted) { greeted = true; greet(); } setTimeout(() => document.getElementById('frd-input').focus(), 300); }
   function closePanel() { panel.classList.remove('open'); isOpen = false; }
 
-  trigger.addEventListener('click', () => isOpen ? closePanel() : openPanel());
+  trigger.addEventListener('click', openComments);
   document.getElementById('frd-close').addEventListener('click', closePanel);
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && isOpen) closePanel(); });
 
@@ -1229,37 +1261,48 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
   triggerBtn.appendChild(bubWrap);
 
   triggerBtn.innerHTML += `
-    <svg width="32" height="32" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <!-- X-frame arms -->
-      <line x1="32" y1="32" x2="14" y2="14" stroke="#00ffe7" stroke-width="2" stroke-linecap="round"/>
-      <line x1="32" y1="32" x2="50" y2="14" stroke="#00ffe7" stroke-width="2" stroke-linecap="round"/>
-      <line x1="32" y1="32" x2="14" y2="50" stroke="#00ffe7" stroke-width="2" stroke-linecap="round"/>
-      <line x1="32" y1="32" x2="50" y2="50" stroke="#00ffe7" stroke-width="2" stroke-linecap="round"/>
-      <!-- Propellers - top left -->
-      <ellipse cx="14" cy="14" rx="9" ry="3" fill="rgba(0,255,231,0.12)" stroke="#00ffe7" stroke-width="1.2" transform="rotate(-45 14 14)"/>
-      <!-- Propellers - top right -->
-      <ellipse cx="50" cy="14" rx="9" ry="3" fill="rgba(0,255,231,0.12)" stroke="#00ffe7" stroke-width="1.2" transform="rotate(45 50 14)"/>
-      <!-- Propellers - bottom left -->
-      <ellipse cx="14" cy="50" rx="9" ry="3" fill="rgba(0,255,231,0.12)" stroke="#00ffe7" stroke-width="1.2" transform="rotate(45 14 50)"/>
-      <!-- Propellers - bottom right -->
-      <ellipse cx="50" cy="50" rx="9" ry="3" fill="rgba(0,255,231,0.12)" stroke="#00ffe7" stroke-width="1.2" transform="rotate(-45 50 50)"/>
-      <!-- Motor hubs -->
-      <circle cx="14" cy="14" r="3" fill="#00ffe7" opacity="0.7"/>
-      <circle cx="50" cy="14" r="3" fill="#00ffe7" opacity="0.7"/>
-      <circle cx="14" cy="50" r="3" fill="#00ffe7" opacity="0.7"/>
-      <circle cx="50" cy="50" r="3" fill="#00ffe7" opacity="0.7"/>
-      <!-- Center body -->
-      <rect x="27" y="27" width="10" height="10" rx="2" fill="rgba(0,255,231,0.2)" stroke="#00ffe7" stroke-width="1.2"/>
-      <circle cx="32" cy="32" r="2.5" fill="#00ffe7" opacity="0.9"/>
-    </svg>
-    <span id="hc-count-badge" style="position:absolute;top:-4px;right:-4px;background:#00ffe7;color:#000;font-family:Orbitron,sans-serif;font-size:8px;font-weight:700;padding:2px 5px;border-radius:10px;min-width:16px;text-align:center;">0</span>
+    <div style="position:relative;filter:drop-shadow(0 0 8px rgba(0,255,231,0.7));">
+      <svg width="52" height="52" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- X-frame arms -->
+        <line x1="32" y1="32" x2="10" y2="10" stroke="#00ffe7" stroke-width="3" stroke-linecap="round"/>
+        <line x1="32" y1="32" x2="54" y2="10" stroke="#00ffe7" stroke-width="3" stroke-linecap="round"/>
+        <line x1="32" y1="32" x2="10" y2="54" stroke="#00ffe7" stroke-width="3" stroke-linecap="round"/>
+        <line x1="32" y1="32" x2="54" y2="54" stroke="#00ffe7" stroke-width="3" stroke-linecap="round"/>
+        <!-- Propellers top-left -->
+        <ellipse cx="10" cy="10" rx="10" ry="3.5" fill="rgba(0,255,231,0.18)" stroke="#00ffe7" stroke-width="2" transform="rotate(-45 10 10)"/>
+        <!-- Propellers top-right -->
+        <ellipse cx="54" cy="10" rx="10" ry="3.5" fill="rgba(0,255,231,0.18)" stroke="#00ffe7" stroke-width="2" transform="rotate(45 54 10)"/>
+        <!-- Propellers bottom-left -->
+        <ellipse cx="10" cy="54" rx="10" ry="3.5" fill="rgba(0,255,231,0.18)" stroke="#00ffe7" stroke-width="2" transform="rotate(45 10 54)"/>
+        <!-- Propellers bottom-right -->
+        <ellipse cx="54" cy="54" rx="10" ry="3.5" fill="rgba(0,255,231,0.18)" stroke="#00ffe7" stroke-width="2" transform="rotate(-45 54 54)"/>
+        <!-- Motor hubs -->
+        <circle cx="10" cy="10" r="4" fill="#00ffe7"/>
+        <circle cx="54" cy="10" r="4" fill="#00ffe7"/>
+        <circle cx="10" cy="54" r="4" fill="#00ffe7"/>
+        <circle cx="54" cy="54" r="4" fill="#00ffe7"/>
+        <!-- Center body -->
+        <rect x="25" y="25" width="14" height="14" rx="3" fill="rgba(0,255,231,0.25)" stroke="#00ffe7" stroke-width="2"/>
+        <circle cx="32" cy="32" r="4" fill="#00ffe7"/>
+      </svg>
+      <span id="hc-count-badge" style="position:absolute;top:-6px;right:-6px;background:#ff2d78;color:#fff;font-family:Orbitron,sans-serif;font-size:8px;font-weight:700;padding:2px 6px;border-radius:10px;min-width:16px;text-align:center;box-shadow:0 0 8px rgba(255,45,120,0.6);">0</span>
+    </div>
+    <span style="font-family:'Orbitron',sans-serif;font-size:9px;font-weight:900;letter-spacing:3px;color:#ff2d78;text-shadow:0 0 8px #ff2d78,0 0 20px rgba(255,45,120,0.7);margin-top:2px;">FALA</span>
   `;
-  triggerBtn.addEventListener('click', openComments);
+  triggerBtn.addEventListener('click', () => isOpen ? closePanel() : openPanel());
   document.body.appendChild(triggerBtn);
 
   // Close on ESC
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeComments();
+    if (e.key === 'Escape') { closeComments(); closePanel(); }
+  });
+  // Click outside to close bot panel
+  document.addEventListener('click', e => {
+    const p = document.getElementById('faraday-panel');
+    const t = document.getElementById('faraday-trigger');
+    if (p && t && !p.contains(e.target) && !t.contains(e.target) && p.classList.contains('open')) {
+      closePanel();
+    }
   });
 
   // ── Init Firebase when DOM ready ──
