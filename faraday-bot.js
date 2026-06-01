@@ -1402,27 +1402,28 @@ EXPLAINING HYDRONE & FALA'S NAME:
   const FALA_AVATAR_SVG = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><rect width='40' height='40' rx='8' fill='%23000e08' stroke='%2300ffe7' stroke-width='1.2'/><line x1='10' y1='10' x2='30' y2='30' stroke='%2300ffe7' stroke-width='2' stroke-linecap='round'/><line x1='30' y1='10' x2='10' y2='30' stroke='%2300ffe7' stroke-width='2' stroke-linecap='round'/><circle cx='10' cy='10' r='3' stroke='%2300ffe7' stroke-width='1.2' fill='none'/><circle cx='30' cy='10' r='3' stroke='%2300ffe7' stroke-width='1.2' fill='none'/><circle cx='10' cy='30' r='3' stroke='%2300ffe7' stroke-width='1.2' fill='none'/><circle cx='30' cy='30' r='3' stroke='%2300ffe7' stroke-width='1.2' fill='none'/><rect x='15.5' y='15.5' width='9' height='9' rx='2' fill='%23001008' stroke='%2300ff88' stroke-width='1'/><text x='20' y='23' text-anchor='middle' font-family='monospace' font-size='8' font-weight='900' fill='%2300ff88'>?</text></svg>`;
 
   async function falaAutoReply() {
-    if (!allComments.length) { console.log('[FALA] No comments found'); return; }
+    if (!allComments.length) return;
     const now = Date.now();
 
+    // Check ALL comments and replies (except FALA's own)
     const candidates = allComments.filter(c => c.uid !== FALA_UID);
-    console.log('[FALA] Checking', candidates.length, 'comments for auto-reply...');
 
     for (const comment of candidates) {
-      const age = Math.round((now - comment.ts) / 60000);
-      const hasReply = allComments.some(c => c.parentId === comment.id);
-      console.log(`[FALA] "${comment.text?.slice(0,30)}" — age: ${age}min, hasReply: ${hasReply}`);
-
+      // Must be at least 30 minutes old
       if (now - comment.ts < THIRTY_MIN) continue;
+
+      // Check if this comment already has ANY reply (from anyone including FALA)
+      const hasReply = allComments.some(c => c.parentId === comment.id);
       if (hasReply) continue;
 
+      // No reply in 30 min — FALA replies!
+      // Pass parent context if this is itself a reply
       const parentComment = comment.parentId
         ? allComments.find(c => c.id === comment.parentId)
         : null;
 
-      console.log('[FALA] Replying to:', comment.name, '-', comment.text?.slice(0,40));
       await falaGenerateAndPost(comment, parentComment);
-      break;
+      break; // one per visit
     }
   }
 
@@ -1452,10 +1453,7 @@ Reply directly (no preamble):`;
         })
       });
       const data = await res.json();
-      if (!data.choices || !data.choices[0]) {
-        console.warn('[FALA] Groq error:', data.error?.message || 'unknown');
-        return;
-      }
+      if (!data.choices || !data.choices[0]) return;
 
       const replyText = data.choices[0].message.content.trim();
 
@@ -1479,9 +1477,6 @@ Reply directly (no preamble):`;
       if (postData.name) {
         allComments.push({ id: postData.name, ...payload });
         renderComments();
-        console.log('[FALA] Auto-replied to:', comment.name, '-', comment.text.slice(0,40));
-      } else {
-        console.warn('[FALA] Firebase post failed:', postData);
       }
     } catch(e) {
       // Silent fail
