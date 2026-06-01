@@ -131,7 +131,7 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
   style.textContent = `
 /* ── FARADAY TRIGGER ── */
 #faraday-trigger {
-  position: fixed; bottom: 32px; left: 32px; z-index: 19000;
+  position: fixed; bottom: 32px; right: 32px; z-index: 19000;
   width: 62px; height: 62px;
   background: radial-gradient(ellipse at 30% 30%, rgba(0,40,60,0.98), rgba(0,8,22,0.99));
   border: none; border-radius: 50%;
@@ -288,7 +288,7 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
 
 /* ── COMMENT TRIGGER BUTTON ── */
 #hc-trigger-btn {
-  position: fixed; bottom: 32px; left: 32px; z-index: 19000 !important;
+  position: fixed; bottom: 32px; left: 32px; z-index: 19001 !important;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   width: 68px; height: 68px;
   background: radial-gradient(circle at 40% 35%, rgba(0,60,80,0.97), rgba(0,15,35,0.99));
@@ -492,7 +492,7 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
 /* ── CURSOR FIX ── */
 #cursor-dot { z-index: 99999 !important; pointer-events: none !important; }
 
-/* ── DIVE IN FIX ── */
+/* ──  FIX ── */
 #hc-trigger-btn { z-index: 19000 !important; }
 
 /* Single comment */
@@ -1229,27 +1229,29 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
   triggerBtn.appendChild(bubWrap);
 
   triggerBtn.innerHTML += `
-    <div class="drone-icon">
-      <svg width="28" height="28" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Drone body -->
-        <ellipse cx="24" cy="26" rx="6" ry="3.5" fill="rgba(0,255,231,0.15)" stroke="#00ffe7" stroke-width="1.2"/>
-        <!-- Arms -->
-        <line x1="24" y1="26" x2="10" y2="18" stroke="#00ffe7" stroke-width="1" opacity="0.6"/>
-        <line x1="24" y1="26" x2="38" y2="18" stroke="#00ffe7" stroke-width="1" opacity="0.6"/>
-        <line x1="24" y1="26" x2="10" y2="34" stroke="#00ffe7" stroke-width="1" opacity="0.6"/>
-        <line x1="24" y1="26" x2="38" y2="34" stroke="#00ffe7" stroke-width="1" opacity="0.6"/>
-        <!-- Rotors -->
-        <ellipse cx="10" cy="18" rx="6" ry="2" fill="none" stroke="#00ffe7" stroke-width="1.2" opacity="0.8"/>
-        <ellipse cx="38" cy="18" rx="6" ry="2" fill="none" stroke="#00ffe7" stroke-width="1.2" opacity="0.8"/>
-        <ellipse cx="10" cy="34" rx="6" ry="2" fill="none" stroke="#00ffe7" stroke-width="1.2" opacity="0.8"/>
-        <ellipse cx="38" cy="34" rx="6" ry="2" fill="none" stroke="#00ffe7" stroke-width="1.2" opacity="0.8"/>
-        <!-- Center dot -->
-        <circle cx="24" cy="26" r="2" fill="#00ffe7" opacity="0.9"/>
-        <!-- Camera/sensor -->
-        <circle cx="24" cy="30" r="1.2" fill="#00ffe7" opacity="0.5"/>
-        <!-- Count badge -->
-      </svg>
-    </div>
+    <svg width="32" height="32" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- X-frame arms -->
+      <line x1="32" y1="32" x2="14" y2="14" stroke="#00ffe7" stroke-width="2" stroke-linecap="round"/>
+      <line x1="32" y1="32" x2="50" y2="14" stroke="#00ffe7" stroke-width="2" stroke-linecap="round"/>
+      <line x1="32" y1="32" x2="14" y2="50" stroke="#00ffe7" stroke-width="2" stroke-linecap="round"/>
+      <line x1="32" y1="32" x2="50" y2="50" stroke="#00ffe7" stroke-width="2" stroke-linecap="round"/>
+      <!-- Propellers - top left -->
+      <ellipse cx="14" cy="14" rx="9" ry="3" fill="rgba(0,255,231,0.12)" stroke="#00ffe7" stroke-width="1.2" transform="rotate(-45 14 14)"/>
+      <!-- Propellers - top right -->
+      <ellipse cx="50" cy="14" rx="9" ry="3" fill="rgba(0,255,231,0.12)" stroke="#00ffe7" stroke-width="1.2" transform="rotate(45 50 14)"/>
+      <!-- Propellers - bottom left -->
+      <ellipse cx="14" cy="50" rx="9" ry="3" fill="rgba(0,255,231,0.12)" stroke="#00ffe7" stroke-width="1.2" transform="rotate(45 14 50)"/>
+      <!-- Propellers - bottom right -->
+      <ellipse cx="50" cy="50" rx="9" ry="3" fill="rgba(0,255,231,0.12)" stroke="#00ffe7" stroke-width="1.2" transform="rotate(-45 50 50)"/>
+      <!-- Motor hubs -->
+      <circle cx="14" cy="14" r="3" fill="#00ffe7" opacity="0.7"/>
+      <circle cx="50" cy="14" r="3" fill="#00ffe7" opacity="0.7"/>
+      <circle cx="14" cy="50" r="3" fill="#00ffe7" opacity="0.7"/>
+      <circle cx="50" cy="50" r="3" fill="#00ffe7" opacity="0.7"/>
+      <!-- Center body -->
+      <rect x="27" y="27" width="10" height="10" rx="2" fill="rgba(0,255,231,0.2)" stroke="#00ffe7" stroke-width="1.2"/>
+      <circle cx="32" cy="32" r="2.5" fill="#00ffe7" opacity="0.9"/>
+    </svg>
     <span id="hc-count-badge" style="position:absolute;top:-4px;right:-4px;background:#00ffe7;color:#000;font-family:Orbitron,sans-serif;font-size:8px;font-weight:700;padding:2px 5px;border-radius:10px;min-width:16px;text-align:center;">0</span>
   `;
   triggerBtn.addEventListener('click', openComments);
