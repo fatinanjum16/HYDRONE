@@ -171,7 +171,11 @@ WEB SEARCH: Use for current events, recent research, time-sensitive info. For HY
   }
 
   // Background FALA check — runs on page load, no panel needed
+  let falaCheckRunning = false; // prevent double-run
+
   async function backgroundFalaCheck() {
+    if (falaCheckRunning) return;
+    falaCheckRunning = true;
     try {
       const res = await fetch(`${FIREBASE_URL}${COMMENTS_PATH}.json`);
       const data = await res.json();
@@ -179,23 +183,30 @@ WEB SEARCH: Use for current events, recent research, time-sensitive info. For HY
       if (!bgComments.length) return;
 
       const now = Date.now();
-      const candidates = bgComments.filter(c => c.uid !== FALA_UID);
-
-      for (const comment of candidates) {
-        if (now - comment.ts < THIRTY_MIN) continue;
+      // Get all comments not by FALA, older than 30 min, with no reply yet
+      const needsReply = bgComments.filter(comment => {
+        if (comment.uid === FALA_UID) return false;
+        if (now - comment.ts < THIRTY_MIN) return false;
         const hasReply = bgComments.some(c => c.parentId === comment.id);
-        if (hasReply) continue;
+        return !hasReply;
+      });
 
+      console.log(`[FALA BG] ${needsReply.length} comment(s) need a reply`);
+
+      // Reply to ALL unanswered comments (one by one to avoid rate limit)
+      for (const comment of needsReply) {
         const parentComment = comment.parentId
           ? bgComments.find(c => c.id === comment.parentId)
           : null;
-
         console.log('[FALA BG] Replying to:', comment.name, '-', comment.text?.slice(0,40));
         await falaGenerateAndPost(comment, parentComment);
-        break;
+        // Small delay between replies to avoid hitting rate limit
+        await new Promise(r => setTimeout(r, 2000));
       }
     } catch(e) {
       console.log('[FALA BG] Check failed:', e.message);
+    } finally {
+      falaCheckRunning = false;
     }
   }
 
@@ -1373,8 +1384,7 @@ WEB SEARCH: Use for current events, recent research, time-sensitive info. For HY
       allComments = data ? Object.entries(data).map(([id, v]) => ({ id, ...v })) : [];
     } catch { allComments = []; }
     renderComments();
-    // Trigger FALA auto-reply check after loading
-    setTimeout(() => falaAutoReply(), 1500);
+    // Note: FALA auto-reply handled by backgroundFalaCheck on page load only
   }
 
   // ── FALA Auto-Reply System ──
@@ -1383,31 +1393,11 @@ WEB SEARCH: Use for current events, recent research, time-sensitive info. For HY
   const THIRTY_MIN = 30 * 60 * 1000;
 
   // FALA custom avatar as SVG data URL
-  const FALA_AVATAR_SVG = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><rect width='40' height='40' rx='8' fill='%23000e08' stroke='%2300ffe7' stroke-width='1.2'/><line x1='10' y1='10' x2='30' y2='30' stroke='%2300ffe7' stroke-width='2' stroke-linecap='round'/><line x1='30' y1='10' x2='10' y2='30' stroke='%2300ffe7' stroke-width='2' stroke-linecap='round'/><circle cx='10' cy='10' r='3' stroke='%2300ffe7' stroke-width='1.2' fill='none'/><circle cx='30' cy='10' r='3' stroke='%2300ffe7' stroke-width='1.2' fill='none'/><circle cx='10' cy='30' r='3' stroke='%2300ffe7' stroke-width='1.2' fill='none'/><circle cx='30' cy='30' r='3' stroke='%2300ffe7' stroke-width='1.2' fill='none'/><rect x='15.5' y='15.5' width='9' height='9' rx='2' fill='%23001008' stroke='%2300ff88' stroke-width='1'/><text x='20' y='23' text-anchor='middle' font-family='monospace' font-size='8' font-weight='900' fill='%2300ff88'>?</text></svg>`;
+  const FALA_AVATAR_SVG = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 40'><rect width='48' height='40' rx='4' fill='%23000e08'/><rect x='0.6' y='0.6' width='46.8' height='38.8' rx='3.5' fill='none' stroke='%2300ffe7' stroke-width='1.2'/><line x1='12' y1='10' x2='36' y2='30' stroke='%2300ffe7' stroke-width='2.2' stroke-linecap='round'/><line x1='36' y1='10' x2='12' y2='30' stroke='%2300ffe7' stroke-width='2.2' stroke-linecap='round'/><circle cx='12' cy='10' r='3.5' stroke='%2300ffe7' stroke-width='1.3' fill='%23000e08'/><circle cx='36' cy='10' r='3.5' stroke='%2300ffe7' stroke-width='1.3' fill='%23000e08'/><circle cx='12' cy='30' r='3.5' stroke='%2300ffe7' stroke-width='1.3' fill='%23000e08'/><circle cx='36' cy='30' r='3.5' stroke='%2300ffe7' stroke-width='1.3' fill='%23000e08'/><circle cx='12' cy='10' r='1.3' fill='%2300ffe7'/><circle cx='36' cy='10' r='1.3' fill='%2300ffe7'/><circle cx='12' cy='30' r='1.3' fill='%2300ffe7'/><circle cx='36' cy='30' r='1.3' fill='%2300ffe7'/><text x='24' y='37' text-anchor='middle' font-family='monospace' font-size='4' font-weight='700' fill='%2300ffe7' letter-spacing='2' opacity='0.6'>FALA</text></svg>`;
 
   async function falaAutoReply() {
-    if (!allComments.length) { console.log('[FALA] No comments found'); return; }
-    const now = Date.now();
-
-    const candidates = allComments.filter(c => c.uid !== FALA_UID);
-    console.log('[FALA] Checking', candidates.length, 'comments for auto-reply...');
-
-    for (const comment of candidates) {
-      const age = Math.round((now - comment.ts) / 60000);
-      const hasReply = allComments.some(c => c.parentId === comment.id);
-      console.log(`[FALA] "${comment.text?.slice(0,30)}" — age: ${age}min, hasReply: ${hasReply}`);
-
-      if (now - comment.ts < THIRTY_MIN) continue;
-      if (hasReply) continue;
-
-      const parentComment = comment.parentId
-        ? allComments.find(c => c.id === comment.parentId)
-        : null;
-
-      console.log('[FALA] Replying to:', comment.name, '-', comment.text?.slice(0,40));
-      await falaGenerateAndPost(comment, parentComment);
-      break;
-    }
+    // Now handled by backgroundFalaCheck only — this is kept as fallback
+    await backgroundFalaCheck();
   }
 
   async function falaGenerateAndPost(comment, parentComment = null) {
