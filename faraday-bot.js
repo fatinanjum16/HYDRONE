@@ -16,7 +16,7 @@
   // CONFIG
   // ═══════════════════════════════════════════════════════════
   const FIREBASE_URL   = 'https://hydrone-by-fatin-default-rtdb.firebaseio.com';
-  const GROQ_KEY = 'https://fala-proxy.hydrone2019.workers.dev';
+  const GROQ_KEY = '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';
   const COMMENTS_PATH  = '/v2comments';
 
   // ── Firebase Web SDK (compat) config ──
@@ -961,9 +961,9 @@ EXPLAINING HYDRONE & FALA'S NAME:
         }
       ];
 
-      const res = await fetch(GROQ_KEY, {
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` },
         body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages, max_tokens: 1024, tools, tool_choice: 'auto' })
       });
       const data = await res.json();
@@ -1015,9 +1015,9 @@ EXPLAINING HYDRONE & FALA'S NAME:
           { role: 'assistant', content: null, tool_calls: choice.message.tool_calls },
           { role: 'tool', tool_call_id: toolCall.id, content: searchResult }
         ];
-        const res2 = await fetch(GROQ_KEY, {
+        const res2 = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` },
           body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: followUpMessages, max_tokens: 1024 })
         });
         const data2 = await res2.json();
@@ -1398,61 +1398,51 @@ EXPLAINING HYDRONE & FALA'S NAME:
   const FALA_NAME = 'FALA';
   const THIRTY_MIN = 30 * 60 * 1000;
 
-  // FALA custom avatar — neon hot pink "Fala" Pacifico-style cursive, matching chatbot header
-  const FALA_AVATAR_SVG = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><defs><radialGradient id='bg' cx='50%25' cy='40%25' r='60%25'><stop offset='0%25' stop-color='%23200010'/><stop offset='100%25' stop-color='%230a0008'/></radialGradient><filter id='glow'><feGaussianBlur stdDeviation='1.2' result='blur'/><feMerge><feMergeNode in='blur'/><feMergeNode in='SourceGraphic'/></feMerge></filter></defs><rect width='40' height='40' rx='9' fill='url(%23bg)' stroke='%23ff3fa4' stroke-width='1'/><text x='20' y='26' text-anchor='middle' font-family='Pacifico%2C cursive' font-size='15' fill='%23ff6ec7' filter='url(%23glow)' style='paint-order:stroke' stroke='%23ff1a8c' stroke-width='0.5'>Fala</text></svg>`;
+  // FALA custom avatar as SVG data URL
+  const FALA_AVATAR_SVG = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><rect width='40' height='40' rx='8' fill='%23000e08' stroke='%2300ffe7' stroke-width='1.2'/><line x1='10' y1='10' x2='30' y2='30' stroke='%2300ffe7' stroke-width='2' stroke-linecap='round'/><line x1='30' y1='10' x2='10' y2='30' stroke='%2300ffe7' stroke-width='2' stroke-linecap='round'/><circle cx='10' cy='10' r='3' stroke='%2300ffe7' stroke-width='1.2' fill='none'/><circle cx='30' cy='10' r='3' stroke='%2300ffe7' stroke-width='1.2' fill='none'/><circle cx='10' cy='30' r='3' stroke='%2300ffe7' stroke-width='1.2' fill='none'/><circle cx='30' cy='30' r='3' stroke='%2300ffe7' stroke-width='1.2' fill='none'/><rect x='15.5' y='15.5' width='9' height='9' rx='2' fill='%23001008' stroke='%2300ff88' stroke-width='1'/><text x='20' y='23' text-anchor='middle' font-family='monospace' font-size='8' font-weight='900' fill='%2300ff88'>?</text></svg>`;
 
   async function falaAutoReply() {
     if (!allComments.length) return;
     const now = Date.now();
 
-    // All comments/replies NOT from FALA
+    // Check ALL comments and replies (except FALA's own)
     const candidates = allComments.filter(c => c.uid !== FALA_UID);
 
-    // Find all that are 30+ min old and have NO reply at all (from anyone)
-    const unanswered = candidates.filter(comment => {
-      if (now - comment.ts < THIRTY_MIN) return false;
-      const hasAnyReply = allComments.some(c => c.parentId === comment.id);
-      return !hasAnyReply;
-    });
+    for (const comment of candidates) {
+      // Must be at least 30 minutes old
+      if (now - comment.ts < THIRTY_MIN) continue;
 
-    if (!unanswered.length) return;
+      // Check if this comment already has ANY reply (from anyone including FALA)
+      const hasReply = allComments.some(c => c.parentId === comment.id);
+      if (hasReply) continue;
 
-    // Reply to ALL unanswered, one by one (stagger slightly to avoid Firebase rate limit)
-    for (let i = 0; i < unanswered.length; i++) {
-      const comment = unanswered[i];
-
-      // Build full context chain — if this comment is a reply, walk up to parent & grandparent
+      // No reply in 30 min — FALA replies!
+      // Pass parent context if this is itself a reply
       const parentComment = comment.parentId
         ? allComments.find(c => c.id === comment.parentId)
         : null;
-      const grandparentComment = parentComment && parentComment.parentId
-        ? allComments.find(c => c.id === parentComment.parentId)
-        : null;
 
-      if (i > 0) await new Promise(r => setTimeout(r, 800)); // small stagger
-      await falaGenerateAndPost(comment, parentComment, grandparentComment);
+      await falaGenerateAndPost(comment, parentComment);
+      break; // one per visit
     }
   }
 
-  async function falaGenerateAndPost(comment, parentComment = null, grandparentComment = null) {
+  async function falaGenerateAndPost(comment, parentComment = null) {
     try {
-      // Build context chain so FALA understands the full thread
       let contextLine = '';
-      if (grandparentComment && parentComment) {
-        contextLine = `CONVERSATION CONTEXT:\n- "${grandparentComment.name}" originally said: "${grandparentComment.text}"\n- "${parentComment.name}" replied: "${parentComment.text}"\n- Now "${comment.name}" replied to that: "${comment.text}"\n\nYou are replying to "${comment.name}" but you're aware of the full thread above.\n\n`;
-      } else if (parentComment) {
-        contextLine = `CONVERSATION CONTEXT:\n- "${parentComment.name}" originally said: "${parentComment.text}"\n- "${comment.name}" replied to that: "${comment.text}"\n\nYou are replying to "${comment.name}" with awareness of what "${parentComment.name}" originally said.\n\n`;
+      if (parentComment) {
+        contextLine = `This is a reply by "${comment.name}" to an earlier comment by "${parentComment.name}" who said: "${parentComment.text}"\n\n`;
       }
 
-      const prompt = `${contextLine}You are FALA replying in the PUBLIC LOG (comments section) of the HYDRONE project website. Be warm, short, and human — 2-3 sentences max. Whether it's a question, praise, curiosity, or a reply in a thread — respond naturally. Don't be robotic. Don't over-explain. Sound like a real person who genuinely cares.
+      const prompt = `${contextLine}Someone left a comment on the HYDRONE project website. Reply to them as FALA — warm, short, human. 2-3 sentences max. Whether it's a question, general praise, curiosity, or a reply to someone else — respond naturally. Don't be robotic. Don't over-explain. Sound like a real person who genuinely cares.
 
-${contextLine ? 'Reply to this latest message' : 'Comment'} from "${comment.name}": "${comment.text}"
+Comment from "${comment.name}": "${comment.text}"
 
 Reply directly (no preamble):`;
 
-      const res = await fetch(GROQ_KEY, {
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
           messages: [
