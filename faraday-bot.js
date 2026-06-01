@@ -362,7 +362,19 @@ WEB SEARCH: Use for current events, recent research, time-sensitive info. For HY
 .frd-msg { display:flex;flex-direction:column;max-width:85%;animation:frdIn 0.35s cubic-bezier(0.34,1.2,0.64,1); }
 @keyframes frdIn { from{opacity:0;transform:translateY(12px) scale(0.96)} to{opacity:1;transform:translateY(0) scale(1)} }
 .frd-msg.user { align-self:flex-end;align-items:flex-end; }
-.frd-msg.bot  { align-self:flex-start;align-items:flex-start; }
+.frd-msg.bot  { align-self:flex-start;align-items:flex-end;flex-direction:row;gap:7px; }
+@keyframes falaAvatarGlow {
+  0%,100% { opacity:0.25;filter:drop-shadow(0 0 2px #ff1a8c); }
+  50% { opacity:1;filter:drop-shadow(0 0 8px #ff6ec7) drop-shadow(0 0 16px #ff1a8c); }
+}
+.frd-bot-avatar {
+  width:26px;height:26px;border-radius:50%;flex-shrink:0;
+  background:#0a0010;border:1.4px solid #ff1a8c;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;line-height:1;
+  animation:falaAvatarGlow 3.2s ease-in-out infinite;
+  align-self:flex-end;margin-bottom:2px;
+}
 .frd-bubble { padding:11px 15px;font-family:'Exo 2',sans-serif;font-size:13px;line-height:1.65;color:#c8e6f5; }
 .frd-msg.user .frd-bubble {
   background: linear-gradient(135deg, rgba(0,255,231,0.1), rgba(0,180,160,0.06));
@@ -437,6 +449,10 @@ WEB SEARCH: Use for current events, recent research, time-sensitive info. For HY
 #frd-drive-iframe{width:100%;height:calc(100% - 36px);margin-top:36px;border:none;filter:invert(0.05) hue-rotate(160deg)}
 
 /* ── COMMENT TRIGGER BUTTON ── */
+@keyframes hcFloat {
+  0%,100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
 #hc-trigger-btn {
   position: fixed; bottom: 32px; right: 32px; z-index: 19000;
   display: flex; align-items: center; gap: 10px;
@@ -445,22 +461,18 @@ WEB SEARCH: Use for current events, recent research, time-sensitive info. For HY
   border: 1px solid rgba(0,255,231,0.3); border-radius: 40px;
   cursor: pointer;
   box-shadow: 0 0 0 1px rgba(0,255,231,0.06), 0 8px 32px rgba(0,0,0,0.6), 0 0 20px rgba(0,255,231,0.1);
-  transition: all 0.3s cubic-bezier(0.34,1.4,0.64,1);
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
   font-family: 'Orbitron', sans-serif; font-size: 10px; letter-spacing: 3px;
   color: #00ffe7; text-transform: uppercase;
+  animation: hcFloat 3s ease-in-out infinite;
 }
 #hc-trigger-btn:hover {
-  transform: scale(1.05);
   box-shadow: 0 0 0 1px rgba(0,255,231,0.5), 0 8px 40px rgba(0,0,0,0.7), 0 0 30px rgba(0,255,231,0.25);
   border-color: rgba(0,255,231,0.6);
+  animation-play-state: paused;
 }
 #hc-trigger-btn svg { width:18px; height:18px; fill:#00ffe7; flex-shrink:0; }
-#hc-count-badge {
-  background: rgba(0,255,231,0.15); border: 1px solid rgba(0,255,231,0.3);
-  border-radius: 20px; padding: 2px 8px;
-  font-family: 'Space Mono', monospace; font-size: 9px; color: #00ffe7;
-  min-width: 20px; text-align: center;
-}
+#hc-count-badge { display: none; }
 
 /* ── COMMENT FLOATING OVERLAY ── */
 #hc-overlay {
@@ -909,6 +921,12 @@ WEB SEARCH: Use for current events, recent research, time-sensitive info. For HY
     const msgs = document.getElementById('frd-messages');
     const wrap = document.createElement('div');
     wrap.className = `frd-msg ${role}`;
+    if (role === 'bot') {
+      const av = document.createElement('div');
+      av.className = 'frd-bot-avatar';
+      av.textContent = '\u{1F9DA}\u200D\u2640\uFE0F';
+      wrap.appendChild(av);
+    }
     const b = document.createElement('div');
     b.className = 'frd-bubble';
     b.innerHTML = text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>').replace(/\n/g,'<br>');
@@ -973,9 +991,9 @@ WEB SEARCH: Use for current events, recent research, time-sensitive info. For HY
             const m = timeMatch[2] ? timeMatch[2].replace('m','') + ' min' : '';
             const s = (timeMatch[3] && !m) ? Math.ceil(parseFloat(timeMatch[3])) + ' sec' : '';
             const waitTime = (h + m + s).trim();
-            addBot(`I've hit my daily limit — I'll be back in ~${waitTime}! 🧚🏻‍♀️ Feel free to explore the archives or drop a comment in the meantime!`);
+            addBot(`I've hit my daily limit — I'll be back in ~${waitTime}! 🪫 Feel free to explore the archives or drop a comment in the meantime!`);
           } else {
-            addBot(`Hmm, something went wrong on my end. Try again in a bit! 🧚🏻‍♀️`);
+            addBot(`Hmm, something went wrong on my end. Try again in a bit! 🪫`);
           }
         } else {
           addBot('Transmission error. Try again.');
@@ -1369,8 +1387,7 @@ WEB SEARCH: Use for current events, recent research, time-sensitive info. For HY
   }
 
   function updateBadge(count) {
-    const badge = document.getElementById('hc-count-badge');
-    if (badge) badge.textContent = count > 0 ? count : '0';
+    // badge removed
   }
 
   // ── Fetch ──
@@ -1390,10 +1407,10 @@ WEB SEARCH: Use for current events, recent research, time-sensitive info. For HY
   // ── FALA Auto-Reply System ──
   const FALA_UID = 'fala_bot_auto';
   const FALA_NAME = 'FALA';
-  const THIRTY_MIN = 30 * 60 * 1000;
+  const THIRTY_MIN = 33 * 60 * 1000;
 
   // FALA custom avatar as SVG data URL
-  const FALA_AVATAR_SVG = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 40'><rect width='48' height='40' rx='4' fill='%23000e08'/><rect x='0.6' y='0.6' width='46.8' height='38.8' rx='3.5' fill='none' stroke='%2300ffe7' stroke-width='1.2'/><line x1='12' y1='10' x2='36' y2='30' stroke='%2300ffe7' stroke-width='2.2' stroke-linecap='round'/><line x1='36' y1='10' x2='12' y2='30' stroke='%2300ffe7' stroke-width='2.2' stroke-linecap='round'/><circle cx='12' cy='10' r='3.5' stroke='%2300ffe7' stroke-width='1.3' fill='%23000e08'/><circle cx='36' cy='10' r='3.5' stroke='%2300ffe7' stroke-width='1.3' fill='%23000e08'/><circle cx='12' cy='30' r='3.5' stroke='%2300ffe7' stroke-width='1.3' fill='%23000e08'/><circle cx='36' cy='30' r='3.5' stroke='%2300ffe7' stroke-width='1.3' fill='%23000e08'/><circle cx='12' cy='10' r='1.3' fill='%2300ffe7'/><circle cx='36' cy='10' r='1.3' fill='%2300ffe7'/><circle cx='12' cy='30' r='1.3' fill='%2300ffe7'/><circle cx='36' cy='30' r='1.3' fill='%2300ffe7'/><text x='24' y='37' text-anchor='middle' font-family='monospace' font-size='4' font-weight='700' fill='%2300ffe7' letter-spacing='2' opacity='0.6'>FALA</text></svg>`;
+  const FALA_AVATAR_SVG = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><defs><style>.fala-ring{animation:fala-hib 3.2s ease-in-out infinite}.fala-emoji{animation:fala-hib 3.2s ease-in-out infinite}.fala-glow{animation:fala-glow-anim 3.2s ease-in-out infinite}@keyframes fala-hib{0%25,100%25{opacity:0.25}50%25{opacity:1}}@keyframes fala-glow-anim{0%25,100%25{filter:drop-shadow(0 0 2px %23ff1a8c)}50%25{filter:drop-shadow(0 0 8px %23ff6ec7) drop-shadow(0 0 16px %23ff1a8c)}}</style></defs><circle cx='20' cy='20' r='18' fill='%230a0010' class='fala-glow'/><circle cx='20' cy='20' r='18' fill='none' stroke='%23ff1a8c' stroke-width='1.6' class='fala-ring'/><text x='20' y='26.5' text-anchor='middle' font-size='17' class='fala-emoji'>&#x1F9DA;&#x200D;&#x2640;&#xFE0F;</text></svg>`;
 
   async function falaAutoReply() {
     // Now handled by backgroundFalaCheck only — this is kept as fallback
@@ -1594,8 +1611,7 @@ Reply directly (no preamble):`;
   triggerBtn.id = 'hc-trigger-btn';
   triggerBtn.innerHTML = `
     <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
-    COMMENTS
-    <span id="hc-count-badge">0</span>`;
+    COMMENTS`;
   triggerBtn.addEventListener('click', openComments);
   document.body.appendChild(triggerBtn);
 
@@ -1658,7 +1674,7 @@ Reply directly (no preamble):`;
     // Find HYDRONE footer text — look for common footer selectors
     const badge = document.createElement('div');
     badge.id = 'hv-view-badge';
-    badge.innerHTML = `<span>👓</span> <strong>${count}</strong> views &nbsp;·&nbsp; last 24 hrs`;
+    badge.innerHTML = `<span>🤿</span> <strong>${count}</strong> views &nbsp;·&nbsp; last 24 hrs`;
     document.body.appendChild(badge);
   }
 
