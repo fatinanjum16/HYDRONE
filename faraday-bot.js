@@ -170,12 +170,17 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
 /* ── FARADAY TRIGGER ── */
 #faraday-trigger {
   position: fixed; bottom: 32px; right: 32px; z-index: 19000;
-  width: 62px; height: 62px;
-  background: radial-gradient(ellipse at 30% 30%, rgba(0,40,60,0.98), rgba(0,8,22,0.99));
-  border: none; border-radius: 50%;
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
-  box-shadow: 0 0 0 1px rgba(0,255,231,0.3), 0 0 28px rgba(0,255,231,0.2), 0 8px 32px rgba(0,0,0,0.6);
+  background: rgba(0,20,40,0.92);
+  border: 1px solid rgba(0,255,231,0.35); border-radius: 6px;
+  padding: 10px 16px;
+  cursor: pointer; display: flex; align-items: center; gap: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 16px rgba(0,255,231,0.1), 0 4px 20px rgba(0,0,0,0.5);
+}
+#faraday-trigger:hover {
+  border-color: rgba(0,255,231,0.6);
+  box-shadow: 0 0 24px rgba(0,255,231,0.2), 0 4px 20px rgba(0,0,0,0.5);
+  transform: translateY(-2px);
 }
 #faraday-trigger::before {
   content:''; position:absolute; inset:-3px; border-radius:50%;
@@ -1289,7 +1294,11 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
     </div>
     <span style="font-family:'Orbitron',sans-serif;font-size:9px;font-weight:900;letter-spacing:3px;color:#ff2d78;text-shadow:0 0 8px #ff2d78,0 0 20px rgba(255,45,120,0.7);margin-top:2px;">FALA</span>
   `;
-  triggerBtn.addEventListener('click', () => isOpen ? closePanel() : openPanel());
+  triggerBtn.addEventListener('click', () => {
+    const p = document.getElementById('faraday-panel');
+    if (!p) return;
+    if (p.classList.contains('open')) { closePanel(); } else { openPanel(); }
+  });
   document.body.appendChild(triggerBtn);
 
   // Close on ESC
