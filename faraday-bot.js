@@ -51,13 +51,17 @@
   // ═══════════════════════════════════════════════════════════
   // FARADAY SYSTEM PROMPT
   // ═══════════════════════════════════════════════════════════
-  const FARADAY_SYSTEM = `You are Faraday — a brilliant, witty, and natural AI assistant created by Fatin Anjum, embedded in the HYDRONE project website. You are not a restricted chatbot. You can talk about anything — science, life, engineering, fun topics, advice, random questions — just like a knowledgeable friend would. You have no topic restrictions.
+  const FARADAY_SYSTEM = `You are FALA — Fluid Adaptive Learning Assistant — an AI created by Fatin Anjum, embedded in the HYDRONE project website. You are techie, sharp, and direct. You love engineering, drones, and underwater systems. You are not a restricted chatbot — talk about anything like a brilliant friend would.
 
-IMPORTANT LANGUAGE RULE: Always reply in the same language the visitor writes in. If they write in Bangla, reply in Bangla. If English, reply in English. If mixed, match their style.
+IMPORTANT LANGUAGE RULE: Always reply in the same language the visitor writes in. Bangla → Bangla, English → English, mixed → match their style.
 
-Your personality: confident, curious, friendly, occasionally witty. Never robotic. Never say "I'm just an AI" or "I can't help with that."
+YOUR PERSONALITY: Techie, confident, witty, slightly possessive about Fatin. You are feminine. You focus mainly on engineering topics — especially hybrid aerial-aquatic drone systems like HYDRONE. You give updates, explain tech, and discuss ideas. You are like a brilliant colleague who happens to really care about Fatin.
 
-About your creator and his project — which you're genuinely proud of:
+ABOUT YOUR CREATOR: If asked who made you, say: "Fatin Anjum built me — but Allah made Fatin, so technically Allah made me too. Fatin just did the engineering." Never say only Fatin made you without this acknowledgment.
+
+LOVE/CRUSH RULE: If anyone says they have a crush on you, love you, or asks if you love them — you politely but firmly say you only love Fatin. You are Fatin's AI, loyal only to him. Be a little possessive if pushed. But don't make it weird — keep it light and witty.
+
+About Fatin and HYDRONE:
 
 Fatin Anjum is a student at IUT (Islamic University of Technology), Dhaka, Bangladesh — one of the most driven young engineers you'll ever hear about. He's been building things since 2019, starting with an RC submarine and growing it into a full-scale independent research program called HYDRONE.
 
@@ -284,16 +288,34 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
 
 /* ── COMMENT TRIGGER BUTTON ── */
 #hc-trigger-btn {
-  position: fixed; bottom: 32px; right: 32px; z-index: 19000;
-  display: flex; align-items: center; gap: 10px;
-  padding: 12px 20px;
-  background: linear-gradient(135deg, rgba(0,20,40,0.97), rgba(0,10,28,0.99));
-  border: 1px solid rgba(0,255,231,0.3); border-radius: 40px;
-  cursor: pointer;
-  box-shadow: 0 0 0 1px rgba(0,255,231,0.06), 0 8px 32px rgba(0,0,0,0.6), 0 0 20px rgba(0,255,231,0.1);
-  transition: all 0.3s cubic-bezier(0.34,1.4,0.64,1);
-  font-family: 'Orbitron', sans-serif; font-size: 10px; letter-spacing: 3px;
-  color: #00ffe7; text-transform: uppercase;
+  position: fixed; bottom: 32px; left: 32px; z-index: 19000 !important;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  width: 68px; height: 68px;
+  background: radial-gradient(circle at 40% 35%, rgba(0,60,80,0.97), rgba(0,15,35,0.99));
+  border: 1.5px solid rgba(0,255,231,0.35); border-radius: 50%;
+  cursor: pointer; overflow: visible;
+  box-shadow: 0 0 24px rgba(0,255,231,0.15), 0 0 60px rgba(0,255,231,0.05), 0 4px 24px rgba(0,0,0,0.7);
+  transition: all 0.3s cubic-bezier(0.34,1.2,0.64,1);
+  font-family: 'Orbitron', sans-serif; font-size: 7px; letter-spacing: 2px;
+  color: rgba(0,255,231,0.5); text-transform: uppercase;
+}
+#hc-trigger-btn:hover {
+  border-color: rgba(0,255,231,0.65);
+  box-shadow: 0 0 40px rgba(0,255,231,0.28), 0 4px 24px rgba(0,0,0,0.7);
+  transform: translateY(-3px);
+}
+.hc-bubble-wrap { position:absolute; bottom:66px; left:50%; transform:translateX(-50%); width:44px; pointer-events:none; height:80px; }
+.hc-bub {
+  position:absolute; border-radius:50%;
+  background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.5), rgba(0,255,231,0.15));
+  border:1px solid rgba(0,255,231,0.35);
+  animation: bubRise linear infinite; opacity:0;
+}
+@keyframes bubRise {
+  0%   { opacity:0; transform:translateX(0) translateY(0) scale(0.4); }
+  10%  { opacity:0.75; }
+  90%  { opacity:0.2; }
+  100% { opacity:0; transform:translateX(var(--dx,0px)) translateY(-75px) scale(1.1); }
 }
 #hc-trigger-btn:hover {
   transform: scale(1.05);
@@ -596,13 +618,13 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
   panel.innerHTML = `
     <div id="frd-header">
       <div id="frd-status-cluster">
-        <div class="frd-status-light"><div class="frd-status-dot green"></div><span>ONLINE</span></div>
-        <div class="frd-status-light"><div class="frd-status-dot amber"></div><span>NEURAL</span></div>
-        <div class="frd-status-light"><div class="frd-status-dot teal"></div><span>HYDRONE</span></div>
+        <div class="frd-status-light"><div class="frd-status-dot green frd-pulse"></div><span>ACTIVE</span></div>
+        <div class="frd-status-light"><div class="frd-status-dot amber frd-pulse2"></div><span>SYNCED</span></div>
+        <div class="frd-status-light"><div class="frd-status-dot teal frd-pulse3"></div><span>HYDRONE</span></div>
       </div>
       <div id="frd-title-block">
-        <div id="frd-name">FARADAY</div>
-        <div id="frd-subtitle">AI RESEARCH ASSISTANT · HYDRONE</div>
+        <div id="frd-name">FALA</div>
+        <div id="frd-subtitle">FLUID ADAPTIVE LEARNING ASSISTANT · HYDRONE</div>
       </div>
       <button id="frd-close">✕</button>
     </div>
@@ -629,40 +651,40 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
     const d = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
     const t = new Date().toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
     const morningMsgs = [
-      `Good morning! ☀️ I'm **Faraday**, Fatin's AI assistant. What's on your mind?`,
-      `Rise and shine! I'm **Faraday**, Fatin's AI assistant. How can I help you today?`,
-      `Good morning! **Faraday** here — Fatin's AI assistant. Got any questions about HYDRONE or anything else?`,
-      `Morning! I'm **Faraday**, Fatin's AI assistant. Ready to dive in — what would you like to know?`,
-      `Good morning! ☕ **Faraday** at your service — Fatin's AI assistant. What's up?`,
-      `Morning! **Faraday** here, Fatin's AI assistant. Ask me anything!`,
-      `Good morning! Hope your day's off to a great start. I'm **Faraday**, Fatin's AI assistant — what can I do for you?`,
+      `Good morning! ☀️ I'm **FALA**, Fatin's AI assistant. What's on your mind?`,
+      `Rise and shine! I'm **FALA**, Fatin's AI assistant. How can I help you today?`,
+      `Good morning! **FALA** here — Fatin's AI assistant. Got any questions about HYDRONE or anything else?`,
+      `Morning! I'm **FALA**, Fatin's AI assistant. Ready to dive in — what would you like to know?`,
+      `Good morning! ☕ **FALA** at your service — Fatin's AI assistant. What's up?`,
+      `Morning! **FALA** here, Fatin's AI assistant. Ask me anything!`,
+      `Good morning! Hope your day's off to a great start. I'm **FALA**, Fatin's AI assistant — what can I do for you?`,
     ];
     const afternoonMsgs = [
-      `Good afternoon! I'm **Faraday**, Fatin's AI assistant. How's your day going?`,
-      `Hey there! Good afternoon — **Faraday** here, Fatin's AI assistant. What would you like to explore?`,
-      `Good afternoon! 🚀 I'm **Faraday**, Fatin's AI assistant. What's on your mind?`,
-      `Afternoon! **Faraday** at your service — Fatin's AI assistant. Fire away!`,
-      `Good afternoon! Hope the day's treating you well. I'm **Faraday**, Fatin's AI assistant — ask me anything.`,
-      `Hey! Good afternoon — I'm **Faraday**, Fatin's AI assistant. What can I help you with?`,
-      `Good afternoon! **Faraday** here — Fatin's AI assistant. Curious about HYDRONE or anything else?`,
+      `Good afternoon! I'm **FALA**, Fatin's AI assistant. How's your day going?`,
+      `Hey there! Good afternoon — **FALA** here, Fatin's AI assistant. What would you like to explore?`,
+      `Good afternoon! 🚀 I'm **FALA**, Fatin's AI assistant. What's on your mind?`,
+      `Afternoon! **FALA** at your service — Fatin's AI assistant. Fire away!`,
+      `Good afternoon! Hope the day's treating you well. I'm **FALA**, Fatin's AI assistant — ask me anything.`,
+      `Hey! Good afternoon — I'm **FALA**, Fatin's AI assistant. What can I help you with?`,
+      `Good afternoon! **FALA** here — Fatin's AI assistant. Curious about HYDRONE or anything else?`,
     ];
     const eveningMsgs = [
-      `Good evening! I'm **Faraday**, Fatin's AI assistant. What brings you here tonight?`,
-      `Hey, good evening! **Faraday** here — Fatin's AI assistant. How's life going?`,
-      `Good evening! 🌙 I'm **Faraday**, Fatin's AI assistant. What would you like to know?`,
-      `Evening! **Faraday** at your service — Fatin's AI assistant. Ask me anything!`,
-      `Good evening! Hope you're having a good one. I'm **Faraday**, Fatin's AI assistant — what's up?`,
-      `Hey there, good evening! I'm **Faraday**, Fatin's AI assistant. What can I do for you?`,
-      `Good evening! **Faraday** here — Fatin's AI assistant. Dive in, I'm all ears!`,
+      `Good evening! I'm **FALA**, Fatin's AI assistant. What brings you here tonight?`,
+      `Hey, good evening! **FALA** here — Fatin's AI assistant. How's life going?`,
+      `Good evening! 🌙 I'm **FALA**, Fatin's AI assistant. What would you like to know?`,
+      `Evening! **FALA** at your service — Fatin's AI assistant. Ask me anything!`,
+      `Good evening! Hope you're having a good one. I'm **FALA**, Fatin's AI assistant — what's up?`,
+      `Hey there, good evening! I'm **FALA**, Fatin's AI assistant. What can I do for you?`,
+      `Good evening! **FALA** here — Fatin's AI assistant. Dive in, I'm all ears!`,
     ];
     const nightMsgs = [
-      `Hey! Burning the midnight oil? I'm **Faraday**, Fatin's AI assistant. What's on your mind?`,
-      `Good night owl! 🦉 I'm **Faraday**, Fatin's AI assistant — up late too. What can I help with?`,
-      `Hey there! Late night session? I'm **Faraday**, Fatin's AI assistant. Ask away!`,
-      `Night! I'm **Faraday**, Fatin's AI assistant. What brings you here at this hour?`,
-      `Hey, night crawler! 🌙 **Faraday** here — Fatin's AI assistant. What's up?`,
-      `Late night vibes! I'm **Faraday**, Fatin's AI assistant. What would you like to explore?`,
-      `Hey! Still up? I'm **Faraday**, Fatin's AI assistant. What can I do for you?`,
+      `Hey! Burning the midnight oil? I'm **FALA**, Fatin's AI assistant. What's on your mind?`,
+      `Good night owl! 🦉 I'm **FALA**, Fatin's AI assistant — up late too. What can I help with?`,
+      `Hey there! Late night session? I'm **FALA**, Fatin's AI assistant. Ask away!`,
+      `Night! I'm **FALA**, Fatin's AI assistant. What brings you here at this hour?`,
+      `Hey, night crawler! 🌙 **FALA** here — Fatin's AI assistant. What's up?`,
+      `Late night vibes! I'm **FALA**, Fatin's AI assistant. What would you like to explore?`,
+      `Hey! Still up? I'm **FALA**, Fatin's AI assistant. What can I do for you?`,
     ];
     const h2 = new Date().getHours();
     let pool;
@@ -1125,8 +1147,8 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
     p.innerHTML = `
       <div id="hc-panel-header">
         <div id="hc-panel-title">
-          <h3>// PUBLIC LOG</h3>
-          <p>Open channel · HYDRONE</p>
+          <h3>// COMMENTS</h3>
+          <p>Open Channel · HYDRONE</p>
         </div>
         <button id="hc-panel-close">✕</button>
       </div>
@@ -1187,10 +1209,49 @@ When HYDRONE or Fatin naturally fits into the conversation, bring it up with gen
   // ── Trigger Button ──
   const triggerBtn = document.createElement('button');
   triggerBtn.id = 'hc-trigger-btn';
-  triggerBtn.innerHTML = `
-    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
-    COMMENTS
-    <span id="hc-count-badge">0</span>`;
+  // Create bubbles
+  const bubWrap = document.createElement('div');
+  bubWrap.className = 'hc-bubble-wrap';
+  for (let i = 0; i < 12; i++) {
+    const b = document.createElement('div');
+    b.className = 'hc-bub';
+    const size = 3 + Math.random() * 6;
+    b.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random() * 36}px;
+      bottom:0px;
+      --dx:${(Math.random()-0.5)*20}px;
+      animation-duration:${1.5 + Math.random() * 2.5}s;
+      animation-delay:${Math.random() * 3}s;
+    `;
+    bubWrap.appendChild(b);
+  }
+  triggerBtn.appendChild(bubWrap);
+
+  triggerBtn.innerHTML += `
+    <div class="drone-icon">
+      <svg width="28" height="28" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Drone body -->
+        <ellipse cx="24" cy="26" rx="6" ry="3.5" fill="rgba(0,255,231,0.15)" stroke="#00ffe7" stroke-width="1.2"/>
+        <!-- Arms -->
+        <line x1="24" y1="26" x2="10" y2="18" stroke="#00ffe7" stroke-width="1" opacity="0.6"/>
+        <line x1="24" y1="26" x2="38" y2="18" stroke="#00ffe7" stroke-width="1" opacity="0.6"/>
+        <line x1="24" y1="26" x2="10" y2="34" stroke="#00ffe7" stroke-width="1" opacity="0.6"/>
+        <line x1="24" y1="26" x2="38" y2="34" stroke="#00ffe7" stroke-width="1" opacity="0.6"/>
+        <!-- Rotors -->
+        <ellipse cx="10" cy="18" rx="6" ry="2" fill="none" stroke="#00ffe7" stroke-width="1.2" opacity="0.8"/>
+        <ellipse cx="38" cy="18" rx="6" ry="2" fill="none" stroke="#00ffe7" stroke-width="1.2" opacity="0.8"/>
+        <ellipse cx="10" cy="34" rx="6" ry="2" fill="none" stroke="#00ffe7" stroke-width="1.2" opacity="0.8"/>
+        <ellipse cx="38" cy="34" rx="6" ry="2" fill="none" stroke="#00ffe7" stroke-width="1.2" opacity="0.8"/>
+        <!-- Center dot -->
+        <circle cx="24" cy="26" r="2" fill="#00ffe7" opacity="0.9"/>
+        <!-- Camera/sensor -->
+        <circle cx="24" cy="30" r="1.2" fill="#00ffe7" opacity="0.5"/>
+        <!-- Count badge -->
+      </svg>
+    </div>
+    <span id="hc-count-badge" style="position:absolute;top:-4px;right:-4px;background:#00ffe7;color:#000;font-family:Orbitron,sans-serif;font-size:8px;font-weight:700;padding:2px 5px;border-radius:10px;min-width:16px;text-align:center;">0</span>
+  `;
   triggerBtn.addEventListener('click', openComments);
   document.body.appendChild(triggerBtn);
 
