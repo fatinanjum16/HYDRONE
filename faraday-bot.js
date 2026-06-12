@@ -16,7 +16,7 @@
   // CONFIG
   // ═══════════════════════════════════════════════════════════
   const FIREBASE_URL   = 'https://hydrone-by-fatin-default-rtdb.firebaseio.com';
-  const GROQ_KEY = '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';
+  const WORKER_URL = 'https://fala-proxy.hydrone2019.workers.dev';
   const COMMENTS_PATH  = '/v2comments';
 
   // ── Firebase Web SDK (compat) config ──
@@ -999,9 +999,9 @@ WEB SEARCH: Use for current events, recent research, time-sensitive info. For HY
         }
       ];
 
-      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      const res = await fetch(WORKER_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages, max_tokens: 1024, tools, tool_choice: 'auto' })
       });
       const data = await res.json();
@@ -1053,9 +1053,9 @@ WEB SEARCH: Use for current events, recent research, time-sensitive info. For HY
           { role: 'assistant', content: null, tool_calls: choice.message.tool_calls },
           { role: 'tool', tool_call_id: toolCall.id, content: searchResult }
         ];
-        const res2 = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        const res2 = await fetch(WORKER_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: followUpMessages, max_tokens: 1024 })
         });
         const data2 = await res2.json();
@@ -1471,9 +1471,9 @@ Comment from "${comment.name}": "${comment.text}"
 
 Reply directly (no preamble):`;
 
-      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      const res = await fetch(WORKER_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
           messages: [
