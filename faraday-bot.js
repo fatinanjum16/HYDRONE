@@ -1002,7 +1002,7 @@ WEB SEARCH: Use for current events, recent research, time-sensitive info. For HY
       const res = await fetch(WORKER_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages, max_tokens: 1024, tools, tool_choice: 'auto' })
+        body: JSON.stringify({ model: 'openai/gpt-oss-120b', messages, max_tokens: 1024, tools, tool_choice: 'auto' })
       });
       const data = await res.json();
 
@@ -1056,7 +1056,7 @@ WEB SEARCH: Use for current events, recent research, time-sensitive info. For HY
         const res2 = await fetch(WORKER_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: followUpMessages, max_tokens: 1024 })
+          body: JSON.stringify({ model: 'openai/gpt-oss-120b', messages: followUpMessages, max_tokens: 1024 })
         });
         const data2 = await res2.json();
         hideTyping();
@@ -1475,7 +1475,7 @@ Reply directly (no preamble):`;
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
+          model: 'openai/gpt-oss-120b',
           messages: [
             { role: 'system', content: FARADAY_SYSTEM },
             { role: 'user', content: prompt }
